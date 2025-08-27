@@ -4,13 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#059669" />
-  <title>Financial Dashboard — HTML + JavaScript (Fixed)</title>
-  <!-- Tailwind (CDN) -->
+  <title>Financial Dashboard — Single File (PWA + Firebase Compat)</title>
+  <!-- Tailwind (CDN) - เหมาะสำหรับ demo/ทดสอบ ถ้า production แนะนำ build ด้วย CLI -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
-    .toast{position:fixed;right:1rem;bottom:1rem;z-index:50}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px}
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -30,10 +30,8 @@
     </div>
   </header>
 
-  <!-- Install app button (hidden until available) -->
-  <button id="installBtn" class="fixed bottom-4 right-4 z-50 hidden px-4 py-2 rounded-full shadow-lg bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-none">
-    ติดตั้งแอป
-  </button>
+  <!-- Install app button (แสดงเมื่อพร้อมติดตั้ง) -->
+  <button id="installBtn" class="fixed bottom-4 right-4 z-50 hidden px-4 py-2 rounded-full shadow-lg bg-emerald-600 text-white hover:bg-emerald-700">ติดตั้งแอป</button>
 
   <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
     <!-- Filters -->
@@ -120,7 +118,7 @@
       </div>
     </section>
 
-    <!-- Table -->
+    <!-- Table + Diagnostics -->
     <section class="p-4 bg-white rounded-2xl border shadow-sm">
       <h3 class="font-semibold mb-3">รายการทั้งหมด</h3>
       <div class="mb-3 text-xs text-gray-500"><span>โหมดข้อมูล: </span><span id="dataMode">LocalStorage (ออฟไลน์ในเครื่อง)</span></div>
@@ -139,34 +137,125 @@
           <tbody id="tbody"></tbody>
         </table>
       </div>
+
+      <details class="mt-3 p-3 border rounded-xl bg-gray-50">
+        <summary class="cursor-pointer text-sm font-medium">แผงวินิจฉัย (คลิกเพื่อเปิด)</summary>
+        <div class="mt-2 grid gap-2 text-xs">
+          <div>สถานะผู้ใช้: <span id="diagUser">-</span></div>
+          <div>โดเมนปัจจุบัน: <code id="diagHost"></code></div>
+          <div class="flex gap-2 flex-wrap">
+            <button id="btnTestWrite" class="px-3 py-1.5 rounded-lg border bg-white hover:bg-gray-100">ทดสอบเขียน Firestore</button>
+            <button id="btnShowRulesHelp" class="px-3 py-1.5 rounded-lg border bg-white hover:bg-gray-100">ดูตัวอย่าง Rules</button>
+          </div>
+          <pre id="diagLog" class="mt-2 max-h-36 overflow-auto bg-white p-2 rounded border"></pre>
+          <div id="testResults" class="text-xs text-gray-500"></div>
+        </div>
+      </details>
     </section>
 
-    <footer class="text-xs text-gray-500 pb-8">ข้อมูลเก็บใน LocalStorage เมื่อไม่ล็อกอิน • ล็อกอินแล้วเก็บที่ Cloud Firestore (โปรเจ็กต์: financial-dashboard-3d5dc)</footer>
+    <footer class="text-xs text-gray-500 pb-8">ข้อมูลเก็บใน LocalStorage เมื่อไม่ล็อกอิน • ล็อกอินแล้วเก็บที่ Cloud Firestore (project: financial-dashboard-3d5dc)</footer>
   </main>
 
-  <!-- Toast container for small messages -->
+  <!-- Toast (single) -->
   <div id="toast" class="hidden fixed bottom-4 left-4 z-50 bg-black/80 text-white px-3 py-2 rounded-lg shadow"></div>
 
-  <!-- Firebase SDKs (modular, via ES Modules) -->
-  <!-- Firebase SDKs (Compat, no ESM) -->
+  <!-- Firebase SDKs (Compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 
   <script>
-    // Global error helpers
+    // ---------- Helpers ----------
     window.addEventListener('unhandledrejection', (e)=>{
       console.error('Unhandled promise rejection:', e.reason);
       showToast('⚠️ ' + (e?.reason?.message || e?.reason || 'Unhandled promise'));
     });
-    function showToast(msg){
-      const el = document.getElementById('toast');
-      if(!el) return; el.className = 'toast bg-black/80 text-white px-3 py-2 rounded-lg shadow';
-      el.textContent = msg; el.classList.remove('hidden');
-      clearTimeout(showToast._t); showToast._t = setTimeout(()=> el.classList.add('hidden'), 3500);
+    function showToast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.remove('hidden'); clearTimeout(showToast._t); showToast._t=setTimeout(()=>el.classList.add('hidden'), 3500); }
+
+    const THB = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' });
+    const fmt = (n) => THB.format(n || 0);
+    const pad = (n) => String(n).padStart(2, '0');
+    const toDateInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const parseDate = (s) => new Date(`${s}T00:00:00`);
+    const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const addDays = (d, n) => new Date(d.getTime() + n * 86400000);
+    const startOfWeekMon = (d) => { const day = d.getDay(); const diff = (day === 0 ? -6 : 1) - day; return addDays(startOfDay(d), diff); };
+    const weekKey = (d) => { const s = startOfWeekMon(d); const y = s.getFullYear(); const onejan = new Date(y, 0, 1); const week = Math.ceil(((s - onejan) / 86400000 + onejan.getDay() + 1) / 7); return `${y}-W${pad(week)}`; };
+    const monthKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+
+    const STORAGE_KEY = 'finance_transactions_v1';
+
+    function seedSample(days = 45){
+      const out=[]; const today=startOfDay(new Date());
+      for(let i=days-1;i>=0;i--){ const d=addDays(today,-i); const date=toDateInput(d);
+        const incCount = Math.random()<0.8 ? (Math.random()<0.5?1:2) : 0;
+        for(let k=0;k<incCount;k++) out.push({ id: crypto.randomUUID(), date, type:'income', category:['ขายออนไลน์','หน้าร้าน','บริการ'][Math.floor(Math.random()*3)], note:'รายรับตัวอย่าง', amount:+(1000+Math.random()*9000).toFixed(2)});
+        const expCount = 1 + Math.floor(Math.random()*3);
+        for(let k=0;k<expCount;k++) out.push({ id: crypto.randomUUID(), date, type:'expense', category:['ค่าน้ำไฟ','ค่าเช่า','ขนส่ง','การตลาด'][Math.floor(Math.random()*4)], note:'รายจ่ายตัวอย่าง', amount:+(200+Math.random()*3000).toFixed(2)});
+        const costCount = Math.random()<0.7?1:0;
+        for(let k=0;k<costCount;k++) out.push({ id: crypto.randomUUID(), date, type:'cost', category:['วัตถุดิบ','แพ็กเกจ','ชำระ supplier'][Math.floor(Math.random()*3)], note:'ต้นทุนตัวอย่าง', amount:+(500+Math.random()*6000).toFixed(2)});
+      }
+      return out;
     }
 
-    // ---- Firebase (Compat) ----
+    function aggregate(transactions, mode, dateFrom, dateTo){
+      const map=new Map(); const from=dateFrom?parseDate(dateFrom):null; const to=dateTo?parseDate(dateTo):null;
+      for(const t of transactions){ const d=parseDate(t.date); if(from && d<from) continue; if(to && d>to) continue;
+        const key = mode==='day'? toDateInput(d) : mode==='week'? weekKey(d) : monthKey(d);
+        if(!map.has(key)) map.set(key,{key,income:0,expense:0,cost:0,net:0});
+        const row=map.get(key); row[t.type]+=t.amount; row.net=row.income-(row.expense+row.cost);
+      }
+      return Array.from(map.values()).sort((a,b)=>{
+        const da=a.key.length===10?parseDate(a.key):new Date(a.key+(a.key.length===7?'-01':''));
+        const db=b.key.length===10?parseDate(b.key):new Date(b.key+(b.key.length===7?'-01':''));
+        return da-db;
+      });
+    }
+
+    function dailySeries(transactions, dateFrom, dateTo){
+      const map=new Map(); const from=dateFrom?parseDate(dateFrom):null; const to=dateTo?parseDate(dateTo):null;
+      const s=from || (transactions.length? parseDate(transactions[0].date): new Date());
+      const e=to || (transactions.length? parseDate(transactions[transactions.length-1].date): new Date());
+      for(let d=startOfDay(s); d<=e; d=addDays(d,1)) map.set(toDateInput(d),{key:toDateInput(d),income:0,expense:0,cost:0,net:0});
+      for(const t of transactions){ const d=parseDate(t.date); if(from && d<from) continue; if(to && d>to) continue; const key=toDateInput(d); const row=map.get(key)||{key,income:0,expense:0,cost:0,net:0}; row[t.type]+=t.amount; row.net=row.income-(row.expense+row.cost); map.set(key,row); }
+      return Array.from(map.values());
+    }
+
+    function csvEncode(rows){
+      const header = Object.keys(rows[0] || { id:'', date:'', type:'', category:'', note:'', amount:0 });
+      const esc=(v)=>"\""+String(v??'').replaceAll("\"","\"\"")+"\"";
+      const lines=[header.join(',')];
+      for(const r of rows) lines.push(header.map(k=>esc(r[k])).join(','));
+      return lines.join('
+');
+    }
+
+    function csvParse(text){
+      const lines = text.split(/
+?
+/).filter(Boolean);
+      if(!lines.length) return [];
+      const header = lines[0].split(',').map(h=>h.replace(/^\"|\"$/g,''));
+      const idx=(k)=>header.indexOf(k);
+      const out=[];
+      for(let i=1;i<lines.length;i++){
+        const row=lines[i]; const cols=[]; let cur=''; let inQ=false;
+        for(let c=0;c<row.length;c++){
+          const ch=row[c];
+          if(ch==='"'){
+            if(inQ && row[c+1]==='"'){ cur+='"'; c++; } else { inQ=!inQ; }
+          } else if(ch===',' && !inQ){ cols.push(cur); cur=''; } else cur+=ch;
+        }
+        cols.push(cur);
+        const get=(k)=>(cols[idx(k)]||'').replace(/^\"|\"$/g,'');
+        out.push({ id:get('id')||crypto.randomUUID(), date:get('date'), type:get('type'), category:get('category'), note:get('note'), amount:parseFloat(get('amount'))||0 });
+      }
+      return out;
+    }
+
+    function download(filename, text){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'})); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
+
+    // ---------- Firebase (Compat) ----------
     const firebaseConfig = {
       apiKey: "AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo",
       authDomain: "financial-dashboard-3d5dc.firebaseapp.com",
@@ -180,106 +269,18 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Enable offline persistence (gracefully fallback)
-    (async()=>{
-      try{
-        await db.enablePersistence();
-        console.info('[Firestore] Persistence enabled');
-      }catch(e){
-        if(e.code==='failed-precondition'){
-          console.warn('[Firestore] Multiple tabs open; persistence disabled');
-        }else if(e.code==='unimplemented'){
-          console.warn('[Firestore] Browser does not support persistence');
-        }else{
-          console.warn('[Firestore] Persistence error:', e);
-        }
+    (async()=>{ // เปิด persistence แบบรอ promise เพื่อกัน error แปลก ๆ
+      try { await db.enablePersistence(); }
+      catch(e){
+        if(e.code==='failed-precondition') console.warn('Persistence disabled (multi-tabs)');
+        else if(e.code==='unimplemented') console.warn('Persistence not supported');
+        else console.warn('Persistence error:', e);
       }
-      boot(); // continue after persistence decision
+      boot();
     })();
 
-    // ---- Utilities ----
-    const THB = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' });
-    const fmt = (n) => THB.format(n || 0);
-    const pad = (n) => String(n).padStart(2, '0');
-    const toDateInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-    const parseDate = (s) => new Date(`${s}T00:00:00`);
-    const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const addDays = (d, n) => new Date(d.getTime() + n * 86400000);
-    const startOfWeekMon = (d) => { const day = d.getDay(); const diff = (day === 0 ? -6 : 1) - day; return addDays(startOfDay(d), diff); };
-    const weekKey = (d) => { const s = startOfWeekMon(d); const y = s.getFullYear(); const onejan = new Date(y, 0, 1); const week = Math.ceil(((s - onejan) / 86400000 + onejan.getDay() + 1) / 7); return `${y}-W${pad(week)}`; };
-    const monthKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
-    const STORAGE_KEY = 'finance_transactions_v1';
-
-    function seedSample(days = 45){
-      const out = []; const today = startOfDay(new Date());
-      for(let i=days-1;i>=0;i--){ const d = addDays(today,-i); const date = toDateInput(d);
-        const incCount = Math.random()<0.8 ? (Math.random()<0.5?1:2) : 0;
-        for(let k=0;k<incCount;k++) out.push({ id: crypto.randomUUID(), date, type:'income', category:['ขายออนไลน์','หน้าร้าน','บริการ'][Math.floor(Math.random()*3)], note:'รายรับตัวอย่าง', amount:+(1000+Math.random()*9000).toFixed(2)});
-        const expCount = 1 + Math.floor(Math.random()*3);
-        for(let k=0;k<expCount;k++) out.push({ id: crypto.randomUUID(), date, type:'expense', category:['ค่าน้ำไฟ','ค่าเช่า','ขนส่ง','การตลาด'][Math.floor(Math.random()*4)], note:'รายจ่ายตัวอย่าง', amount:+(200+Math.random()*3000).toFixed(2)});
-        const costCount = Math.random()<0.7?1:0;
-        for(let k=0;k<costCount;k++) out.push({ id: crypto.randomUUID(), date, type:'cost', category:['วัตถุดิบ','แพ็กเกจ','ชำระ supplier'][Math.floor(Math.random()*3)], note:'ต้นทุนตัวอย่าง', amount:+(500+Math.random()*6000).toFixed(2)});
-      }
-      return out;
-    }
-
-    function aggregate(transactions, mode, dateFrom, dateTo){
-      const map = new Map();
-      const from = dateFrom? parseDate(dateFrom): null; const to = dateTo? parseDate(dateTo): null;
-      for(const t of transactions){ const d = parseDate(t.date); if(from && d<from) continue; if(to && d>to) continue;
-        let key; if(mode==='day') key = toDateInput(d); else if(mode==='week') key = weekKey(d); else key = monthKey(d);
-        if(!map.has(key)) map.set(key, { key, income:0, expense:0, cost:0, net:0 });
-        const row = map.get(key); row[t.type]+=t.amount; row.net = row.income - (row.expense+row.cost);
-      }
-      const arr = Array.from(map.values()).sort((a,b)=>{ const da=a.key.length===10?parseDate(a.key):new Date(a.key+(a.key.length===7?'-01':'')); const db=b.key.length===10?parseDate(b.key):new Date(b.key+(b.key.length===7?'-01':'')); return da-db; });
-      return arr;
-    }
-    function dailySeries(transactions, dateFrom, dateTo){
-      const map = new Map(); const from = dateFrom? parseDate(dateFrom): null; const to = dateTo? parseDate(dateTo): null;
-      const s = from || (transactions.length? parseDate(transactions[0].date): new Date());
-      const e = to || (transactions.length? parseDate(transactions[transactions.length-1].date): new Date());
-      for(let d=startOfDay(s); d<=e; d=addDays(d,1)) map.set(toDateInput(d), { key: toDateInput(d), income:0, expense:0, cost:0, net:0 });
-      for(const t of transactions){ const d=parseDate(t.date); if(from && d<from) continue; if(to && d>to) continue; const key=toDateInput(d); const row = map.get(key)||{ key, income:0, expense:0, cost:0, net:0 }; row[t.type]+=t.amount; row.net=row.income-(row.expense+row.cost); map.set(key,row); }
-      return Array.from(map.values());
-    }
-    function csvEncode(rows){
-      const header = Object.keys(rows[0] || { id:'', date:'', type:'', category:'', note:'', amount:0 });
-      const esc=(v)=>`"${String(v??'').replaceAll('"','""')}"`;
-      const lines=[header.join(',')];
-      for(const r of rows) lines.push(header.map(k=>esc(r[k])).join(','));
-      return lines.join('
-');
-    }
-    function csvParse(text){
-      const lines = text.split(/
-?
-/).filter(Boolean);
-      if(!lines.length) return [];
-      const header = lines[0].split(',').map(h=>h.replace(/^\"|\"$/g,''));
-      const idx = (k)=>header.indexOf(k);
-      const out=[];
-      for(let i=1;i<lines.length;i++){
-        const row = lines[i];
-        const cols=[]; let cur=''; let inQ=false;
-        for(let c=0;c<row.length;c++){
-          const ch=row[c];
-          if(ch==='"'){
-            if(inQ && row[c+1]==='"'){ cur+='"'; c++; } else { inQ=!inQ; }
-          } else if(ch===',' && !inQ){
-            cols.push(cur); cur='';
-          } else cur+=ch;
-        }
-        cols.push(cur);
-        const get=(k)=>(cols[idx(k)]||'').replace(/^\"|\"$/g,'');
-        out.push({ id:get('id')||crypto.randomUUID(), date:get('date'), type:get('type'), category:get('category'), note:get('note'), amount:parseFloat(get('amount'))||0 });
-      }
-      return out;
-    }
-    function download(filename, text){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'})); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
-
-    
+    // ---------- App ----------
     function boot(){
-      // Elements & state
       const els = {
         dateFrom: document.getElementById('dateFrom'),
         dateTo: document.getElementById('dateTo'),
@@ -301,7 +302,14 @@
         helloUser: document.getElementById('helloUser'),
         loginBtn: document.getElementById('loginBtn'),
         logoutBtn: document.getElementById('logoutBtn'),
+        diagUser: document.getElementById('diagUser'),
+        diagHost: document.getElementById('diagHost'),
+        diagLog: document.getElementById('diagLog'),
+        btnTestWrite: document.getElementById('btnTestWrite'),
+        btnShowRulesHelp: document.getElementById('btnShowRulesHelp'),
+        testResults: document.getElementById('testResults'),
       };
+
       const state = { user:null, mode:'day', transactions:[], unsub:null };
 
       // Init dates
@@ -310,40 +318,38 @@
       els.dateFrom.value = toDateInput(addDays(today, -29));
       els.newDate.value = toDateInput(today);
 
-      // Seed
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if(!saved) localStorage.setItem(STORAGE_KEY, JSON.stringify(seedSample()));
+      // Seed local
+      if(!localStorage.getItem(STORAGE_KEY)) localStorage.setItem(STORAGE_KEY, JSON.stringify(seedSample()));
 
       // Charts
       const barChart = new Chart(document.getElementById('barChart'), { type:'bar', data:{ labels:[], datasets:[{label:'รายรับ',data:[]},{label:'รายจ่าย',data:[]},{label:'ต้นทุน',data:[]}] }, options:{ responsive:true, maintainAspectRatio:false } });
       const lineChart = new Chart(document.getElementById('lineChart'), { type:'line', data:{ labels:[], datasets:[{label:'รายรับ',data:[],tension:0.3},{label:'รายจ่าย',data:[],tension:0.3},{label:'ต้นทุน',data:[],tension:0.3}] }, options:{ responsive:true, maintainAspectRatio:false, elements:{ point:{ radius:0 } } } });
 
       function render(){
-        const sorted = [...state.transactions].sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0);
-        const agg = aggregate(sorted, state.mode, els.dateFrom.value, els.dateTo.value);
-        const daily = dailySeries(sorted, els.dateFrom.value, els.dateTo.value);
-        const totals = daily.reduce((acc,r)=>{ acc.income+=r.income; acc.expense+=r.expense; acc.cost+=r.cost; return acc; }, {income:0,expense:0,cost:0});
-        els.kpiIncome.textContent = fmt(totals.income);
-        els.kpiExpense.textContent = fmt(totals.expense);
-        els.kpiCost.textContent = fmt(totals.cost);
-        els.kpiNet.textContent = fmt(totals.income - (totals.expense+totals.cost));
-        els.barTitle.textContent = `กราฟแท่ง — ${state.mode==='day'?'รายวัน':state.mode==='week'?'รายสัปดาห์':'รายเดือน'}`;
-        barChart.data.labels = agg.map(r=>r.key);
-        barChart.data.datasets[0].data = agg.map(r=>r.income);
-        barChart.data.datasets[1].data = agg.map(r=>r.expense);
-        barChart.data.datasets[2].data = agg.map(r=>r.cost);
+        const sorted=[...state.transactions].sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0);
+        const agg=aggregate(sorted, state.mode, els.dateFrom.value, els.dateTo.value);
+        const daily=dailySeries(sorted, els.dateFrom.value, els.dateTo.value);
+        const totals=daily.reduce((acc,r)=>{acc.income+=r.income;acc.expense+=r.expense;acc.cost+=r.cost;return acc;},{income:0,expense:0,cost:0});
+        els.kpiIncome.textContent=fmt(totals.income);
+        els.kpiExpense.textContent=fmt(totals.expense);
+        els.kpiCost.textContent=fmt(totals.cost);
+        els.kpiNet.textContent=fmt(totals.income-(totals.expense+totals.cost));
+        els.barTitle.textContent=`กราฟแท่ง — ${state.mode==='day'?'รายวัน':state.mode==='week'?'รายสัปดาห์':'รายเดือน'}`;
+        barChart.data.labels=agg.map(r=>r.key);
+        barChart.data.datasets[0].data=agg.map(r=>r.income);
+        barChart.data.datasets[1].data=agg.map(r=>r.expense);
+        barChart.data.datasets[2].data=agg.map(r=>r.cost);
         barChart.update();
-        lineChart.data.labels = daily.map(r=>r.key);
-        lineChart.data.datasets[0].data = daily.map(r=>r.income);
-        lineChart.data.datasets[1].data = daily.map(r=>r.expense);
-        lineChart.data.datasets[2].data = daily.map(r=>r.cost);
+        lineChart.data.labels=daily.map(r=>r.key);
+        lineChart.data.datasets[0].data=daily.map(r=>r.income);
+        lineChart.data.datasets[1].data=daily.map(r=>r.expense);
+        lineChart.data.datasets[2].data=daily.map(r=>r.cost);
         lineChart.update();
-        els.tbody.innerHTML = '';
-        const filtered = sorted.filter(t => (!els.dateFrom.value || t.date >= els.dateFrom.value) && (!els.dateTo.value || t.date <= els.dateTo.value));
+        els.tbody.innerHTML='';
+        const filtered=sorted.filter(t=>(!els.dateFrom.value||t.date>=els.dateFrom.value)&&(!els.dateTo.value||t.date<=els.dateTo.value));
         for(const t of filtered){
-          const tr = document.createElement('tr'); tr.className='border-b last:border-0';
-          tr.innerHTML = `
-            <td class="py-2 pr-2 whitespace-nowrap">${t.date}</td>
+          const tr=document.createElement('tr'); tr.className='border-b last:border-0';
+          tr.innerHTML=`<td class="py-2 pr-2 whitespace-nowrap">${t.date}</td>
             <td class="py-2 pr-2 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs ${t.type==='income'?'bg-emerald-100 text-emerald-700': t.type==='expense'?'bg-rose-100 text-rose-700':'bg-amber-100 text-amber-700'}">${t.type==='income'?'รายรับ':t.type==='expense'?'รายจ่าย':'ต้นทุน'}</span></td>
             <td class="py-2 pr-2 whitespace-nowrap">${t.category||'-'}</td>
             <td class="py-2 pr-2">${t.note||''}</td>
@@ -352,6 +358,7 @@
           els.tbody.appendChild(tr);
         }
       }
+
       function saveLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.transactions)); }
 
       // Auth
@@ -361,6 +368,7 @@
         els.helloUser.classList.toggle('hidden', !u);
         els.logoutBtn.classList.toggle('hidden', !u);
         els.loginBtn.classList.toggle('hidden', !!u);
+        els.diagUser.textContent = u ? (u.email || u.uid) : 'ไม่ล็อกอิน';
         if(u){
           els.helloUser.textContent = `สวัสดี, ${u.displayName || u.email}`;
           if(state.unsub) state.unsub();
@@ -369,7 +377,8 @@
             const rows = snap.docs.map(d=>({ firestoreId:d.id, ...(d.data()||{}) }));
             state.transactions = rows.map(r=>({ id:r.id||r.firestoreId, firestoreId:r.firestoreId, date:r.date, type:r.type, category:r.category, note:r.note, amount:r.amount }));
             render();
-          }, (err)=>{ console.error('onSnapshot error', err); showToast('⚠️ Firestore error: '+(err.message||err)); });
+          }, (err)=>{ console.error('onSnapshot error', err); els.diagLog.textContent += `❌ onSnapshot: ${err?.code||''} ${err?.message||err}
+`; });
         }else{
           if(state.unsub){ state.unsub(); state.unsub=null; }
           try{ state.transactions = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }catch{ state.transactions=[]; }
@@ -377,7 +386,7 @@
         }
       });
 
-      // UI Events
+      // Events
       document.querySelectorAll('.rangeBtn').forEach(btn=> btn.addEventListener('click', ()=>{ const d=parseInt(btn.dataset.range,10); els.dateFrom.value=toDateInput(addDays(new Date(), -d+1)); els.dateTo.value=toDateInput(new Date()); render(); }));
       document.querySelectorAll('.modeBtn').forEach(btn=> btn.addEventListener('click', ()=>{ document.querySelectorAll('.modeBtn').forEach(b=> b.classList.remove('bg-emerald-600','text-white','border-emerald-600')); document.querySelectorAll('.modeBtn').forEach(b=> b.classList.add('bg-white')); btn.classList.add('bg-emerald-600','text-white','border-emerald-600'); state.mode=btn.dataset.mode; render(); }));
       els.dateFrom.addEventListener('change', render); els.dateTo.addEventListener('change', render);
@@ -386,20 +395,24 @@
       els.addBtn.addEventListener('click', async ()=>{
         const date=els.newDate.value; const type=els.newType.value; const amount=parseFloat(els.newAmount.value);
         if(!date||!type||isNaN(amount)||amount<=0) return alert('กรอกวันที่ ประเภท และจำนวนเงินให้ถูกต้อง');
-        const row = { id: crypto.randomUUID(), date, type, category: els.newCategory.value||'-', note: els.newNote.value||'', amount };
+        const row={ id:crypto.randomUUID(), date, type, category:els.newCategory.value||'-', note:els.newNote.value||'', amount };
         try{
           if(state.user){
-            await db.collection('transactions').add({ ...row, uid: state.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+            const ref = await db.collection('transactions').add({ ...row, uid: state.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+            els.diagLog.textContent += `✅ addDoc: ${ref.id}
+`;
           }else{
             state.transactions.push(row); saveLocal(); render();
           }
           els.newAmount.value=''; els.newCategory.value=''; els.newNote.value='';
-        }catch(e){ alert('บันทึกไม่สำเร็จ: '+(e.message||e)); }
+        }catch(e){ console.error('addDoc error', e); alert('บันทึกไม่สำเร็จ: '+(e.message||e)+(e.code?`
+(code: ${e.code})`:'')); els.diagLog.textContent += `❌ addDoc: ${e?.code||''} ${e?.message||e}
+`; }
       });
 
       // Delete
       document.getElementById('tbody').addEventListener('click', async (e)=>{
-        const btn = e.target.closest('.delBtn'); if(!btn) return; const id=btn.dataset.id; const fsid=btn.dataset.fsid;
+        const btn=e.target.closest('.delBtn'); if(!btn) return; const id=btn.dataset.id; const fsid=btn.dataset.fsid;
         try{
           if(state.user && fsid){ await db.collection('transactions').doc(fsid).delete(); }
           else { state.transactions = state.transactions.filter(x=>x.id!==id); saveLocal(); render(); }
@@ -411,8 +424,25 @@
       els.importInput.addEventListener('change', async (e)=>{ const file=e.target.files&&e.target.files[0]; if(!file) return; const text=await file.text(); try{ const rows=csvParse(text); if(!rows.length) return alert('ไฟล์ว่างเปล่าหรือรูปแบบไม่ถูกต้อง'); if(state.user){ for(const r of rows) await db.collection('transactions').add({ ...r, uid: state.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); } else { const set=new Set(state.transactions.map(x=>x.id)); for(const r of rows) if(!set.has(r.id)) state.transactions.push(r); saveLocal(); render(); } e.target.value=''; }catch(err){ alert('นำเข้าไม่สำเร็จ: '+(err.message||err)); }});
 
       // Login/Logout
-      els.loginBtn.addEventListener('click', async ()=>{ try{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }catch(e){ alert('ล็อกอินไม่สำเร็จ: '+(e.message||e)); } });
+      els.loginBtn.addEventListener('click', async ()=>{ try{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }catch(e){ alert('ล็อกอินไม่สำเร็จ: '+(e.message||e)); els.diagLog.textContent += `❌ login: ${e?.code||''} ${e?.message||e}
+`; } });
       els.logoutBtn.addEventListener('click', async ()=>{ try{ await auth.signOut(); }catch(e){ alert('ออกจากระบบไม่สำเร็จ: '+(e.message||e)); } });
+
+      // Diag helpers
+      els.diagHost.textContent = location.host;
+      els.btnTestWrite.addEventListener('click', async ()=>{ if(!state.user) return alert('กรุณาล็อกอินก่อน'); try{ const ref=await db.collection('transactions').add({ id:crypto.randomUUID(), date:new Date().toISOString().slice(0,10), type:'income', category:'__test__', note:'diag', amount:1, uid:state.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); els.diagLog.textContent += `✅ testWrite: ${ref.id}
+`; }catch(e){ els.diagLog.textContent += `❌ testWrite: ${e?.code||''} ${e?.message||e}
+`; alert('เขียนไม่สำเร็จ: '+(e.message||e)); } });
+      els.btnShowRulesHelp.addEventListener('click', ()=>{ const rules=`// Firestore security rules (ตัวอย่าง ให้ผู้ใช้เห็น/เขียนเฉพาะของตัวเอง)
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /transactions/{docId} {
+      allow read, create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+  }
+}`; navigator.clipboard.writeText(rules).then(()=> alert('คัดลอกตัวอย่าง Rules แล้ว (Firestore → Rules)')); });
 
       // Initial local render
       try{ state.transactions = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }catch{ state.transactions=[]; }
@@ -426,93 +456,26 @@
         const ag=aggregate(txs,'day','2025-01-01','2025-01-02'); ok('aggregate day len', ag.length===2); ok('aggregate net day1', ag[0].net===70);
         const ds=dailySeries(txs,'2025-01-01','2025-01-03'); ok('daily len>=3', ds.length>=3);
         const csv=csvEncode(txs); const parsed=csvParse(csv); ok('csv roundtrip', parsed.length===txs.length);
-        const pass=results.filter(r=>r.pass).length; const fail=results.length-pass; console.table(results);
-        if(fail) showToast(`❌ Tests failed: ${fail}`);
+        const pass=results.filter(r=>r.pass).length; const fail=results.length-pass; els.testResults.innerHTML=`<span class="badge ${fail?'bg-rose-100 text-rose-700':'bg-emerald-100 text-emerald-700'}">Tests: ${pass}/${results.length} passed${fail?`, ${fail} failed`:''}</span>`; if(fail) console.table(results);
       })();
     }
-  </script>
 
-  <!-- PWA: dynamic manifest + service worker + A2HS prompt -->
-  <script>
-    (function(){
-      // Generate PNG icons dynamically so we can keep a single-file deploy
-      function makeIcon(size){
-        const c=document.createElement('canvas'); c.width=c.height=size; const ctx=c.getContext('2d');
-        // background
-        ctx.fillStyle='#059669'; ctx.fillRect(0,0,size,size);
-        // currency mark
-        ctx.fillStyle='#FFFFFF'; ctx.font=`${Math.round(size*0.55)}px system-ui, -apple-system, Segoe UI, Roboto`; ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText('฿', size/2, size/2+Math.round(size*0.05));
-        return c.toDataURL('image/png');
-      }
-      const icon192 = makeIcon(192);
-      const icon512 = makeIcon(512);
+    // ---------- PWA (manifest + SW + A2HS) ----------
+    ;(function(){
+      function makeIcon(size){ const c=document.createElement('canvas'); c.width=c.height=size; const x=c.getContext('2d'); x.fillStyle='#059669'; x.fillRect(0,0,size,size); x.fillStyle='#fff'; x.font=`${Math.round(size*0.55)}px system-ui,-apple-system,Segoe UI,Roboto`; x.textAlign='center'; x.textBaseline='middle'; x.fillText('฿', size/2, size/2+Math.round(size*0.05)); return c.toDataURL('image/png'); }
+      const icon192=makeIcon(192), icon512=makeIcon(512);
+      const manifest={ name:'Financial Dashboard', short_name:'Finance', start_url:'.', scope:'.', display:'standalone', background_color:'#ffffff', theme_color:'#059669', icons:[{src:icon192,sizes:'192x192',type:'image/png'},{src:icon512,sizes:'512x512',type:'image/png'}] };
+      const murl=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'})); const link=document.createElement('link'); link.rel='manifest'; link.href=murl; document.head.appendChild(link); const apple=document.createElement('link'); apple.rel='apple-touch-icon'; apple.href=icon192; document.head.appendChild(apple);
 
-      // Create & attach manifest
-      const manifest = {
-        name: 'Financial Dashboard',
-        short_name: 'Finance',
-        start_url: '.',
-        scope: '.',
-        display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#059669',
-        icons: [
-          { src: icon192, sizes: '192x192', type: 'image/png' },
-          { src: icon512, sizes: '512x512', type: 'image/png' }
-        ]
-      };
-      const mblob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
-      const murl = URL.createObjectURL(mblob);
-      const link = document.createElement('link'); link.rel='manifest'; link.href=murl; document.head.appendChild(link);
-
-      // Add apple-touch-icon for iOS
-      const apple = document.createElement('link'); apple.rel='apple-touch-icon'; apple.href=icon192; document.head.appendChild(apple);
-
-      // Register service worker (cache-first)
-      if ('serviceWorker' in navigator) {
-        const swCode = `
-          const CACHE = 'finance-cache-v2';
-          const CORE = [ './', './index.html' ];
-          self.addEventListener('install', e=>{ e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE))); self.skipWaiting(); });
-          self.addEventListener('activate', e=>{ e.waitUntil((async()=>{ const keys=await caches.keys(); await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))); })()); self.clients.claim(); });
-          self.addEventListener('fetch', e=>{
-            const req = e.request;
-            e.respondWith((async()=>{
-              const cache = await caches.open(CACHE);
-              const hit = await cache.match(req);
-              if(hit) return hit;
-              try{
-                const res = await fetch(req);
-                if(req.method==='GET' && res.ok && new URL(req.url).origin!==self.location.origin ? res.type==='opaque'||res.type==='basic' : true){
-                  cache.put(req, res.clone());
-                }
-                return res;
-              }catch(err){
-                const indexHit = await cache.match('./index.html');
-                return indexHit || new Response('Offline', {status:503,statusText:'Offline'});
-              }
-            })());
-          });
-        `;
-        const blob = new Blob([swCode], {type:'text/javascript'});
-        const swUrl = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(swUrl).catch(err=>console.warn('SW register fail', err));
+      if('serviceWorker' in navigator){
+        const sw=`const CACHE='finance-cache-v3'; const CORE=['./','./index.html']; self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE))); self.skipWaiting();}); self.addEventListener('activate',e=>{e.waitUntil((async()=>{const ks=await caches.keys(); await Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)));})()); self.clients.claim();}); self.addEventListener('fetch',e=>{const r=e.request; e.respondWith((async()=>{const cache=await caches.open(CACHE); const hit=await cache.match(r); if(hit) return hit; try{const res=await fetch(r); if(r.method==='GET' && res.ok){try{cache.put(r,res.clone());}catch{}} return res;}catch{const idx=await cache.match('./index.html'); return idx || new Response('Offline',{status:503});}})());});`;
+        const swUrl=URL.createObjectURL(new Blob([sw],{type:'text/javascript'})); navigator.serviceWorker.register(swUrl).catch(err=>console.warn('SW register fail',err));
       }
 
-      // Handle A2HS prompt
-      let deferred;
-      const btn = document.getElementById('installBtn');
-      window.addEventListener('beforeinstallprompt', (e)=>{
-        e.preventDefault(); deferred = e; btn.classList.remove('hidden');
-      });
-      btn?.addEventListener('click', async ()=>{
-        if(!deferred) return; btn.disabled=true; try{ await deferred.prompt(); const choice = await deferred.userChoice; if(choice.outcome==='accepted'){ btn.classList.add('hidden'); } } finally { btn.disabled=false; deferred=null; }
-      });
-
-      // If already installed, hide button
-      window.matchMedia('(display-mode: standalone)').addEventListener('change', (e)=>{ if(e.matches) btn?.classList.add('hidden'); });
-      if (window.matchMedia('(display-mode: standalone)').matches) btn?.classList.add('hidden');
+      let deferred; const btn=document.getElementById('installBtn');
+      window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferred=e; btn.classList.remove('hidden'); });
+      btn?.addEventListener('click', async ()=>{ if(!deferred) return; btn.disabled=true; try{ await deferred.prompt(); const ch=await deferred.userChoice; if(ch.outcome==='accepted') btn.classList.add('hidden'); } finally { btn.disabled=false; deferred=null; } });
+      const hide=()=>btn?.classList.add('hidden'); if(window.matchMedia('(display-mode: standalone)').matches) hide(); window.matchMedia('(display-mode: standalone)').addEventListener('change',e=>{ if(e.matches) hide(); });
     })();
   </script>
 </body>
