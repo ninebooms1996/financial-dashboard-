@@ -1,160 +1,399 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Financial Dashboard</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Financial Dashboard — HTML + JavaScript</title>
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f9fafb; }
-    h1 { color: #065f46; }
-    .card { background: #fff; padding: 16px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    .grid { display: grid; gap: 16px; }
-    .grid-2 { grid-template-columns: 1fr 1fr; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
-    th { background: #f3f4f6; }
-    button { padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
-    button:hover { background: #f3f4f6; }
-    .income { color: green; }
-    .expense { color: red; }
-    .cost { color: orange; }
+    .toast{position:fixed;right:1rem;bottom:1rem;z-index:50}
   </style>
 </head>
-<body>
-  <h1>บันทึกรายรับ – รายจ่ายบริษัท</h1>
+<body class="bg-gray-50 text-gray-900">
+  <header class="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+      <div class="p-2 rounded-xl bg-emerald-100 text-emerald-700 font-semibold">฿</div>
+      <h1 class="text-xl md:text-2xl font-semibold">บันทึกรายรับ–รายจ่ายบริษัท (HTML + JS)</h1>
+      <div class="ml-auto flex items-center gap-2">
+        <button id="exportBtn" class="px-3 py-2 rounded-xl border bg-white hover:bg-gray-50">ส่งออก CSV</button>
+        <label class="px-3 py-2 rounded-xl border bg-white hover:bg-gray-50 cursor-pointer">นำเข้า CSV
+          <input id="importInput" type="file" accept=".csv" class="hidden" />
+        </label>
+        <span id="helloUser" class="text-sm text-gray-500 hidden"></span>
+        <button id="loginBtn" class="px-3 py-2 rounded-xl border bg-white hover:bg-gray-50 text-emerald-700">เข้าสู่ระบบ Google</button>
+        <button id="logoutBtn" class="px-3 py-2 rounded-xl border bg-white hover:bg-gray-50 text-gray-600 hidden">ออกจากระบบ</button>
+      </div>
+    </div>
+  </header>
 
-  <div class="card">
-    <h2>เพิ่มรายการ</h2>
-    <form id="txForm">
-      <label>วันที่: <input type="date" id="date" required></label>
-      <label> ประเภท: 
-        <select id="type">
-          <option value="income">รายรับ</option>
-          <option value="expense">รายจ่าย</option>
-          <option value="cost">ต้นทุน</option>
-        </select>
-      </label>
-      <label> จำนวนเงิน: <input type="number" id="amount" required></label>
-      <label> หมวดหมู่: <input type="text" id="category"></label>
-      <label> หมายเหตุ: <input type="text" id="note"></label>
-      <button type="submit">บันทึก</button>
-    </form>
-  </div>
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <!-- Filters -->
+    <section class="grid md:grid-cols-3 gap-3">
+      <div class="p-4 bg-white rounded-2xl border shadow-sm">
+        <div class="flex items-center gap-2 mb-3 font-semibold">ช่วงวันที่</div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs text-gray-500">จาก</label>
+            <input id="dateFrom" type="date" class="w-full mt-1 px-3 py-2 rounded-xl border" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-500">ถึง</label>
+            <input id="dateTo" type="date" class="w-full mt-1 px-3 py-2 rounded-xl border" />
+          </div>
+        </div>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <button data-range="7" class="rangeBtn px-3 py-1.5 rounded-full border text-sm hover:bg-gray-50">7 วัน</button>
+          <button data-range="30" class="rangeBtn px-3 py-1.5 rounded-full border text-sm hover:bg-gray-50">30 วัน</button>
+          <button data-range="90" class="rangeBtn px-3 py-1.5 rounded-full border text-sm hover:bg-gray-50">90 วัน</button>
+        </div>
+      </div>
 
-  <div class="card grid grid-2">
-    <canvas id="barChart"></canvas>
-    <canvas id="lineChart"></canvas>
-  </div>
+      <div class="p-4 bg-white rounded-2xl border shadow-sm">
+        <div class="flex items-center gap-2 mb-3 font-semibold">มุมมองกราฟ</div>
+        <div class="flex gap-2">
+          <button data-mode="day" class="modeBtn px-4 py-2 rounded-xl border bg-emerald-600 text-white border-emerald-600">รายวัน</button>
+          <button data-mode="week" class="modeBtn px-4 py-2 rounded-xl border bg-white hover:bg-gray-50">รายสัปดาห์</button>
+          <button data-mode="month" class="modeBtn px-4 py-2 rounded-xl border bg-white hover:bg-gray-50">รายเดือน</button>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">กราฟแท่ง: เทียบรายรับ/รายจ่าย/ต้นทุน • กราฟเส้น: แนวโน้มรายวัน</p>
+      </div>
 
-  <div class="card">
-    <h2>รายการทั้งหมด</h2>
-    <table id="txTable">
-      <thead>
-        <tr>
-          <th>วันที่</th><th>ประเภท</th><th>หมวดหมู่</th><th>หมายเหตุ</th><th>จำนวนเงิน</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+      <!-- Quick Add -->
+      <div class="p-4 bg-white rounded-2xl border shadow-sm">
+        <div class="flex items-center gap-2 mb-3 font-semibold">เพิ่มรายการ</div>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="col-span-2">
+            <label class="text-xs text-gray-500">วันที่</label>
+            <input id="newDate" type="date" class="w-full mt-1 px-3 py-2 rounded-xl border" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-500">ประเภท</label>
+            <select id="newType" class="w-full mt-1 px-3 py-2 rounded-xl border">
+              <option value="income">รายรับ</option>
+              <option value="expense">รายจ่าย</option>
+              <option value="cost">ต้นทุน</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500">จำนวนเงิน (บาท)</label>
+            <input id="newAmount" inputmode="decimal" placeholder="0.00" class="w-full mt-1 px-3 py-2 rounded-xl border" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-500">หมวดหมู่</label>
+            <input id="newCategory" placeholder="เช่น ค่าเช่า/ขายออนไลน์" class="w-full mt-1 px-3 py-2 rounded-xl border" />
+          </div>
+          <div>
+            <label class="text-xs text-gray-500">หมายเหตุ</label>
+            <input id="newNote" placeholder="โน้ตเพิ่มเติม (ถ้ามี)" class="w-full mt-1 px-3 py-2 rounded-xl border" />
+          </div>
+        </div>
+        <button id="addBtn" class="mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">บันทึก</button>
+      </div>
+    </section>
 
-<script>
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo",
-  authDomain: "financial-dashboard-3d5dc.firebaseapp.com",
-  projectId: "financial-dashboard-3d5dc",
-  storageBucket: "financial-dashboard-3d5dc.firebasestorage.app",
-  messagingSenderId: "308051512266",
-  appId: "1:308051512266:web:55e25fbd660bac950c5d33",
-  measurementId: "G-BNRMXZZBC0"
-};
+    <!-- KPI Cards -->
+    <section class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="p-4 bg-white rounded-2xl border shadow-sm"><div class="text-sm text-gray-500">รายรับรวม</div><div id="kpiIncome" class="text-2xl font-semibold"></div><div class="text-xs text-gray-400">ช่วงวันที่ที่เลือก</div></div>
+      <div class="p-4 bg-white rounded-2xl border shadow-sm"><div class="text-sm text-gray-500">รายจ่ายรวม</div><div id="kpiExpense" class="text-2xl font-semibold"></div><div class="text-xs text-gray-400">รวมค่าใช้จ่ายทั่วไป</div></div>
+      <div class="p-4 bg-white rounded-2xl border shadow-sm"><div class="text-sm text-gray-500">ต้นทุนรวม</div><div id="kpiCost" class="text-2xl font-semibold"></div><div class="text-xs text-gray-400">สินค้าหรือวัตถุดิบ</div></div>
+      <div class="p-4 bg-white rounded-2xl border shadow-sm"><div class="text-sm text-gray-500">กำไรสุทธิ</div><div id="kpiNet" class="text-2xl font-semibold"></div><div class="text-xs text-gray-400">รายรับ - (รายจ่าย+ต้นทุน)</div></div>
+    </section>
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+    <!-- Charts -->
+    <section class="grid lg:grid-cols-2 gap-6">
+      <div class="p-4 bg-white rounded-2xl border shadow-sm">
+        <h3 id="barTitle" class="font-semibold mb-2">กราฟแท่ง — รายวัน</h3>
+        <div class="h-80"><canvas id="barChart"></canvas></div>
+      </div>
+      <div class="p-4 bg-white rounded-2xl border shadow-sm">
+        <h3 class="font-semibold mb-2">กราฟเส้น — สรุปเทียบกัน (รายวัน)</h3>
+        <div class="h-80"><canvas id="lineChart"></canvas></div>
+      </div>
+    </section>
 
-// --- Data Handling ---
-const txForm = document.getElementById("txForm");
-const txTableBody = document.querySelector("#txTable tbody");
-let transactions = [];
+    <!-- Table -->
+    <section class="p-4 bg-white rounded-2xl border shadow-sm">
+      <h3 class="font-semibold mb-3">รายการทั้งหมด</h3>
+      <div class="mb-3 text-xs text-gray-500"><span>โหมดข้อมูล: </span><span id="dataMode">LocalStorage (ออฟไลน์ในเครื่อง)</span></div>
+      <div class="overflow-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="text-left text-gray-500 border-b">
+              <th class="py-2 pr-2">วันที่</th>
+              <th class="py-2 pr-2">ประเภท</th>
+              <th class="py-2 pr-2">หมวดหมู่</th>
+              <th class="py-2 pr-2">หมายเหตุ</th>
+              <th class="py-2 pr-2 text-right">จำนวนเงิน</th>
+              <th class="py-2 pr-2">ลบ</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
 
-// Add Transaction
- txForm.addEventListener("submit", async (e)=>{
-  e.preventDefault();
-  const tx = {
-    date: document.getElementById("date").value,
-    type: document.getElementById("type").value,
-    amount: parseFloat(document.getElementById("amount").value),
-    category: document.getElementById("category").value,
-    note: document.getElementById("note").value
-  };
-  await db.collection("transactions").add(tx);
-  txForm.reset();
-});
+    <footer class="text-xs text-gray-500 pb-8">ข้อมูลเก็บใน LocalStorage เมื่อไม่ล็อกอิน • ล็อกอินแล้วเก็บที่ Cloud Firestore (โปรเจ็กต์: financial-dashboard-3d5dc)</footer>
+  </main>
 
-// Realtime listener
- db.collection("transactions").orderBy("date").onSnapshot(snapshot =>{
-  transactions = [];
-  snapshot.forEach(doc =>{
-    transactions.push(doc.data());
-  });
-  renderTable();
-  renderCharts();
-});
+  <div id="toast" class="toast hidden"></div>
 
-function renderTable(){
-  txTableBody.innerHTML = "";
-  transactions.forEach(t =>{
-    const row = `<tr>
-      <td>${t.date}</td>
-      <td class="${t.type}">${t.type}</td>
-      <td>${t.category}</td>
-      <td>${t.note}</td>
-      <td>${t.amount.toLocaleString()}</td>
-    </tr>`;
-    txTableBody.innerHTML += row;
-  });
-}
+  <!-- Firebase SDKs (modular, via ES Modules) -->
+  <!-- Firebase SDKs (Compat, no ESM) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 
-let barChart, lineChart;
-function renderCharts(){
-  const income = {}, expense = {}, cost = {};
-  transactions.forEach(t=>{
-    if(!income[t.date]){ income[t.date]=0; expense[t.date]=0; cost[t.date]=0; }
-    if(t.type==="income") income[t.date]+=t.amount;
-    if(t.type==="expense") expense[t.date]+=t.amount;
-    if(t.type==="cost") cost[t.date]+=t.amount;
-  });
-  const labels = Object.keys(income);
-  const incomeData = labels.map(l=>income[l]);
-  const expenseData = labels.map(l=>expense[l]);
-  const costData = labels.map(l=>cost[l]);
+  <script>
+    // Global error helpers
+    window.addEventListener('unhandledrejection', (e)=>{
+      console.error('Unhandled promise rejection:', e.reason);
+      showToast('⚠️ ' + (e?.reason?.message || e?.reason || 'Unhandled promise'));
+    });
+    function showToast(msg){
+      const el = document.getElementById('toast');
+      if(!el) return; el.className = 'toast bg-black/80 text-white px-3 py-2 rounded-lg shadow';
+      el.textContent = msg; el.classList.remove('hidden');
+      clearTimeout(showToast._t); showToast._t = setTimeout(()=> el.classList.add('hidden'), 3500);
+    }
 
-  if(barChart) barChart.destroy();
-  if(lineChart) lineChart.destroy();
+    // ---- Firebase (Compat) ----
+    const firebaseConfig = {
+      apiKey: "AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo",
+      authDomain: "financial-dashboard-3d5dc.firebaseapp.com",
+      projectId: "financial-dashboard-3d5dc",
+      storageBucket: "financial-dashboard-3d5dc.firebasestorage.app",
+      messagingSenderId: "308051512266",
+      appId: "1:308051512266:web:55e25fbd660bac950c5d33",
+      measurementId: "G-BNRMXZZBC0",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  barChart = new Chart(document.getElementById("barChart"), {
-    type: 'bar',
-    data: { labels, datasets: [
-      { label:"รายรับ", data: incomeData, backgroundColor:"green" },
-      { label:"รายจ่าย", data: expenseData, backgroundColor:"red" },
-      { label:"ต้นทุน", data: costData, backgroundColor:"orange" }
-    ]}
-  });
+    // Enable offline persistence (gracefully fallback)
+    (async()=>{
+      try{
+        await db.enablePersistence();
+        console.info('[Firestore] Persistence enabled');
+      }catch(e){
+        if(e.code==='failed-precondition'){
+          console.warn('[Firestore] Multiple tabs open; persistence disabled');
+        }else if(e.code==='unimplemented'){
+          console.warn('[Firestore] Browser does not support persistence');
+        }else{
+          console.warn('[Firestore] Persistence error:', e);
+        }
+      }
+      boot(); // continue after persistence decision
+    })();
 
-  lineChart = new Chart(document.getElementById("lineChart"), {
-    type: 'line',
-    data: { labels, datasets: [
-      { label:"รายรับ", data: incomeData, borderColor:"green", fill:false },
-      { label:"รายจ่าย", data: expenseData, borderColor:"red", fill:false },
-      { label:"ต้นทุน", data: costData, borderColor:"orange", fill:false }
-    ]}
-  });
-}
-</script>
+    // ---- Utilities ----
+    const THB = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' });
+    const fmt = (n) => THB.format(n || 0);
+    const pad = (n) => String(n).padStart(2, '0');
+    const toDateInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const parseDate = (s) => new Date(`${s}T00:00:00`);
+    const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const addDays = (d, n) => new Date(d.getTime() + n * 86400000);
+    const startOfWeekMon = (d) => { const day = d.getDay(); const diff = (day === 0 ? -6 : 1) - day; return addDays(startOfDay(d), diff); };
+    const weekKey = (d) => { const s = startOfWeekMon(d); const y = s.getFullYear(); const onejan = new Date(y, 0, 1); const week = Math.ceil(((s - onejan) / 86400000 + onejan.getDay() + 1) / 7); return `${y}-W${pad(week)}`; };
+    const monthKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+    const STORAGE_KEY = 'finance_transactions_v1';
+
+    function seedSample(days = 45){
+      const out = []; const today = startOfDay(new Date());
+      for(let i=days-1;i>=0;i--){ const d = addDays(today,-i); const date = toDateInput(d);
+        const incCount = Math.random()<0.8 ? (Math.random()<0.5?1:2) : 0;
+        for(let k=0;k<incCount;k++) out.push({ id: crypto.randomUUID(), date, type:'income', category:['ขายออนไลน์','หน้าร้าน','บริการ'][Math.floor(Math.random()*3)], note:'รายรับตัวอย่าง', amount:+(1000+Math.random()*9000).toFixed(2)});
+        const expCount = 1 + Math.floor(Math.random()*3);
+        for(let k=0;k<expCount;k++) out.push({ id: crypto.randomUUID(), date, type:'expense', category:['ค่าน้ำไฟ','ค่าเช่า','ขนส่ง','การตลาด'][Math.floor(Math.random()*4)], note:'รายจ่ายตัวอย่าง', amount:+(200+Math.random()*3000).toFixed(2)});
+        const costCount = Math.random()<0.7?1:0;
+        for(let k=0;k<costCount;k++) out.push({ id: crypto.randomUUID(), date, type:'cost', category:['วัตถุดิบ','แพ็กเกจ','ชำระ supplier'][Math.floor(Math.random()*3)], note:'ต้นทุนตัวอย่าง', amount:+(500+Math.random()*6000).toFixed(2)});
+      }
+      return out;
+    }
+
+    function aggregate(transactions, mode, dateFrom, dateTo){
+      const map = new Map();
+      const from = dateFrom? parseDate(dateFrom): null; const to = dateTo? parseDate(dateTo): null;
+      for(const t of transactions){ const d = parseDate(t.date); if(from && d<from) continue; if(to && d>to) continue;
+        let key; if(mode==='day') key = toDateInput(d); else if(mode==='week') key = weekKey(d); else key = monthKey(d);
+        if(!map.has(key)) map.set(key, { key, income:0, expense:0, cost:0, net:0 });
+        const row = map.get(key); row[t.type]+=t.amount; row.net = row.income - (row.expense+row.cost);
+      }
+      const arr = Array.from(map.values()).sort((a,b)=>{ const da=a.key.length===10?parseDate(a.key):new Date(a.key+(a.key.length===7?'-01':'')); const db=b.key.length===10?parseDate(b.key):new Date(b.key+(b.key.length===7?'-01':'')); return da-db; });
+      return arr;
+    }
+    function dailySeries(transactions, dateFrom, dateTo){
+      const map = new Map(); const from = dateFrom? parseDate(dateFrom): null; const to = dateTo? parseDate(dateTo): null;
+      const s = from || (transactions.length? parseDate(transactions[0].date): new Date());
+      const e = to || (transactions.length? parseDate(transactions[transactions.length-1].date): new Date());
+      for(let d=startOfDay(s); d<=e; d=addDays(d,1)) map.set(toDateInput(d), { key: toDateInput(d), income:0, expense:0, cost:0, net:0 });
+      for(const t of transactions){ const d=parseDate(t.date); if(from && d<from) continue; if(to && d>to) continue; const key=toDateInput(d); const row = map.get(key)||{ key, income:0, expense:0, cost:0, net:0 }; row[t.type]+=t.amount; row.net=row.income-(row.expense+row.cost); map.set(key,row); }
+      return Array.from(map.values());
+    }
+    function csvEncode(rows){ const header = Object.keys(rows[0] || { id:'', date:'', type:'', category:'', note:'', amount:0 }); const esc=(v)=>`"${String(v??'').replaceAll('"','""')}"`; const lines=[header.join(',')]; for(const r of rows) lines.push(header.map(k=>esc(r[k])).join(',')); return lines.join('
+'); }
+    function csvParse(text){ const lines=text.split(/
+?
+/).filter(Boolean); if(!lines.length) return []; const header=lines[0].split(',').map(h=>h.replace(/^\"|\"$/g,'')); const idx=(k)=>header.indexOf(k); const out=[]; for(let i=1;i<lines.length;i++){ const cols=[]; let cur=''; let inQ=false; for(let c=0;c<lines[i].length;c++){ const ch=lines[i][c]; if(ch==='"'){ if(inQ && lines[i][c+1]==='"'){ cur+='"'; c++; } else { inQ=!inQ; } } else if(ch===',' && !inQ){ cols.push(cur); cur=''; } else cur+=ch; } cols.push(cur); const get=(k)=>(cols[idx(k)]||'').replace(/^\"|\"$/g,''); out.push({ id:get('id')||crypto.randomUUID(), date:get('date'), type:get('type'), category:get('category'), note:get('note'), amount:parseFloat(get('amount'))||0 }); } return out; }
+    function download(filename, text){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'})); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
+
+    function boot(){
+      // Elements & state
+      const els = {
+        dateFrom: document.getElementById('dateFrom'),
+        dateTo: document.getElementById('dateTo'),
+        dataMode: document.getElementById('dataMode'),
+        exportBtn: document.getElementById('exportBtn'),
+        importInput: document.getElementById('importInput'),
+        newDate: document.getElementById('newDate'),
+        newType: document.getElementById('newType'),
+        newAmount: document.getElementById('newAmount'),
+        newCategory: document.getElementById('newCategory'),
+        newNote: document.getElementById('newNote'),
+        addBtn: document.getElementById('addBtn'),
+        tbody: document.getElementById('tbody'),
+        kpiIncome: document.getElementById('kpiIncome'),
+        kpiExpense: document.getElementById('kpiExpense'),
+        kpiCost: document.getElementById('kpiCost'),
+        kpiNet: document.getElementById('kpiNet'),
+        barTitle: document.getElementById('barTitle'),
+        helloUser: document.getElementById('helloUser'),
+        loginBtn: document.getElementById('loginBtn'),
+        logoutBtn: document.getElementById('logoutBtn'),
+      };
+      const state = { user:null, mode:'day', transactions:[], unsub:null };
+
+      // Init dates
+      const today = new Date();
+      els.dateTo.value = toDateInput(today);
+      els.dateFrom.value = toDateInput(addDays(today, -29));
+      els.newDate.value = toDateInput(today);
+
+      // Seed
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if(!saved) localStorage.setItem(STORAGE_KEY, JSON.stringify(seedSample()));
+
+      // Charts
+      const barChart = new Chart(document.getElementById('barChart'), { type:'bar', data:{ labels:[], datasets:[{label:'รายรับ',data:[]},{label:'รายจ่าย',data:[]},{label:'ต้นทุน',data:[]}] }, options:{ responsive:true, maintainAspectRatio:false } });
+      const lineChart = new Chart(document.getElementById('lineChart'), { type:'line', data:{ labels:[], datasets:[{label:'รายรับ',data:[],tension:0.3},{label:'รายจ่าย',data:[],tension:0.3},{label:'ต้นทุน',data:[],tension:0.3}] }, options:{ responsive:true, maintainAspectRatio:false, elements:{ point:{ radius:0 } } } });
+
+      function render(){
+        const sorted = [...state.transactions].sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0);
+        const agg = aggregate(sorted, state.mode, els.dateFrom.value, els.dateTo.value);
+        const daily = dailySeries(sorted, els.dateFrom.value, els.dateTo.value);
+        const totals = daily.reduce((acc,r)=>{ acc.income+=r.income; acc.expense+=r.expense; acc.cost+=r.cost; return acc; }, {income:0,expense:0,cost:0});
+        els.kpiIncome.textContent = fmt(totals.income);
+        els.kpiExpense.textContent = fmt(totals.expense);
+        els.kpiCost.textContent = fmt(totals.cost);
+        els.kpiNet.textContent = fmt(totals.income - (totals.expense+totals.cost));
+        els.barTitle.textContent = `กราฟแท่ง — ${state.mode==='day'?'รายวัน':state.mode==='week'?'รายสัปดาห์':'รายเดือน'}`;
+        barChart.data.labels = agg.map(r=>r.key);
+        barChart.data.datasets[0].data = agg.map(r=>r.income);
+        barChart.data.datasets[1].data = agg.map(r=>r.expense);
+        barChart.data.datasets[2].data = agg.map(r=>r.cost);
+        barChart.update();
+        lineChart.data.labels = daily.map(r=>r.key);
+        lineChart.data.datasets[0].data = daily.map(r=>r.income);
+        lineChart.data.datasets[1].data = daily.map(r=>r.expense);
+        lineChart.data.datasets[2].data = daily.map(r=>r.cost);
+        lineChart.update();
+        els.tbody.innerHTML = '';
+        const filtered = sorted.filter(t => (!els.dateFrom.value || t.date >= els.dateFrom.value) && (!els.dateTo.value || t.date <= els.dateTo.value));
+        for(const t of filtered){
+          const tr = document.createElement('tr'); tr.className='border-b last:border-0';
+          tr.innerHTML = `
+            <td class="py-2 pr-2 whitespace-nowrap">${t.date}</td>
+            <td class="py-2 pr-2 whitespace-nowrap"><span class="px-2 py-1 rounded-full text-xs ${t.type==='income'?'bg-emerald-100 text-emerald-700': t.type==='expense'?'bg-rose-100 text-rose-700':'bg-amber-100 text-amber-700'}">${t.type==='income'?'รายรับ':t.type==='expense'?'รายจ่าย':'ต้นทุน'}</span></td>
+            <td class="py-2 pr-2 whitespace-nowrap">${t.category||'-'}</td>
+            <td class="py-2 pr-2">${t.note||''}</td>
+            <td class="py-2 pr-2 text-right">${fmt(t.amount)}</td>
+            <td class="py-2 pr-2"><button class="delBtn px-2 py-1 rounded-lg hover:bg-gray-100 text-gray-500" data-id="${t.id}" data-fsid="${t.firestoreId||''}">ลบ</button></td>`;
+          els.tbody.appendChild(tr);
+        }
+      }
+      function saveLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.transactions)); }
+
+      // Auth
+      auth.onAuthStateChanged((u)=>{
+        state.user = u || null;
+        els.dataMode.textContent = u ? 'Cloud Firestore (ผูกกับบัญชี Google)' : 'LocalStorage (ออฟไลน์ในเครื่อง)';
+        els.helloUser.classList.toggle('hidden', !u);
+        els.logoutBtn.classList.toggle('hidden', !u);
+        els.loginBtn.classList.toggle('hidden', !!u);
+        if(u){
+          els.helloUser.textContent = `สวัสดี, ${u.displayName || u.email}`;
+          if(state.unsub) state.unsub();
+          const q = db.collection('transactions').where('uid','==', u.uid).orderBy('date','asc');
+          state.unsub = q.onSnapshot((snap)=>{
+            const rows = snap.docs.map(d=>({ firestoreId:d.id, ...(d.data()||{}) }));
+            state.transactions = rows.map(r=>({ id:r.id||r.firestoreId, firestoreId:r.firestoreId, date:r.date, type:r.type, category:r.category, note:r.note, amount:r.amount }));
+            render();
+          }, (err)=>{ console.error('onSnapshot error', err); showToast('⚠️ Firestore error: '+(err.message||err)); });
+        }else{
+          if(state.unsub){ state.unsub(); state.unsub=null; }
+          try{ state.transactions = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }catch{ state.transactions=[]; }
+          render();
+        }
+      });
+
+      // UI Events
+      document.querySelectorAll('.rangeBtn').forEach(btn=> btn.addEventListener('click', ()=>{ const d=parseInt(btn.dataset.range,10); els.dateFrom.value=toDateInput(addDays(new Date(), -d+1)); els.dateTo.value=toDateInput(new Date()); render(); }));
+      document.querySelectorAll('.modeBtn').forEach(btn=> btn.addEventListener('click', ()=>{ document.querySelectorAll('.modeBtn').forEach(b=> b.classList.remove('bg-emerald-600','text-white','border-emerald-600')); document.querySelectorAll('.modeBtn').forEach(b=> b.classList.add('bg-white')); btn.classList.add('bg-emerald-600','text-white','border-emerald-600'); state.mode=btn.dataset.mode; render(); }));
+      els.dateFrom.addEventListener('change', render); els.dateTo.addEventListener('change', render);
+
+      // Add
+      els.addBtn.addEventListener('click', async ()=>{
+        const date=els.newDate.value; const type=els.newType.value; const amount=parseFloat(els.newAmount.value);
+        if(!date||!type||isNaN(amount)||amount<=0) return alert('กรอกวันที่ ประเภท และจำนวนเงินให้ถูกต้อง');
+        const row = { id: crypto.randomUUID(), date, type, category: els.newCategory.value||'-', note: els.newNote.value||'', amount };
+        try{
+          if(state.user){
+            await db.collection('transactions').add({ ...row, uid: state.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+          }else{
+            state.transactions.push(row); saveLocal(); render();
+          }
+          els.newAmount.value=''; els.newCategory.value=''; els.newNote.value='';
+        }catch(e){ alert('บันทึกไม่สำเร็จ: '+(e.message||e)); }
+      });
+
+      // Delete
+      document.getElementById('tbody').addEventListener('click', async (e)=>{
+        const btn = e.target.closest('.delBtn'); if(!btn) return; const id=btn.dataset.id; const fsid=btn.dataset.fsid;
+        try{
+          if(state.user && fsid){ await db.collection('transactions').doc(fsid).delete(); }
+          else { state.transactions = state.transactions.filter(x=>x.id!==id); saveLocal(); render(); }
+        }catch(err){ alert('ลบไม่สำเร็จ: '+(err.message||err)); }
+      });
+
+      // CSV
+      els.exportBtn.addEventListener('click', ()=>{ const sorted=[...state.transactions].sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0); const csv=csvEncode(sorted); download(`transactions_${Date.now()}.csv`, csv); });
+      els.importInput.addEventListener('change', async (e)=>{ const file=e.target.files&&e.target.files[0]; if(!file) return; const text=await file.text(); try{ const rows=csvParse(text); if(!rows.length) return alert('ไฟล์ว่างเปล่าหรือรูปแบบไม่ถูกต้อง'); if(state.user){ for(const r of rows) await db.collection('transactions').add({ ...r, uid: state.user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); } else { const set=new Set(state.transactions.map(x=>x.id)); for(const r of rows) if(!set.has(r.id)) state.transactions.push(r); saveLocal(); render(); } e.target.value=''; }catch(err){ alert('นำเข้าไม่สำเร็จ: '+(err.message||err)); }});
+
+      // Login/Logout
+      els.loginBtn.addEventListener('click', async ()=>{ try{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }catch(e){ alert('ล็อกอินไม่สำเร็จ: '+(e.message||e)); } });
+      els.logoutBtn.addEventListener('click', async ()=>{ try{ await auth.signOut(); }catch(e){ alert('ออกจากระบบไม่สำเร็จ: '+(e.message||e)); } });
+
+      // Initial local render
+      try{ state.transactions = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }catch{ state.transactions=[]; }
+      render();
+
+      // Smoke tests
+      (function runTests(){
+        const results=[]; const ok=(n,c)=>results.push({name:n,pass:!!c});
+        const sample=seedSample(10); ok('seedSample entries', sample.length>0);
+        const txs=[{id:'1',date:'2025-01-01',type:'income',category:'x',note:'',amount:100},{id:'2',date:'2025-01-01',type:'expense',category:'x',note:'',amount:30},{id:'3',date:'2025-01-02',type:'cost',category:'x',note:'',amount:20}];
+        const ag=aggregate(txs,'day','2025-01-01','2025-01-02'); ok('aggregate day len', ag.length===2); ok('aggregate net day1', ag[0].net===70);
+        const ds=dailySeries(txs,'2025-01-01','2025-01-03'); ok('daily len>=3', ds.length>=3);
+        const csv=csvEncode(txs); const parsed=csvParse(csv); ok('csv roundtrip', parsed.length===txs.length);
+        const pass=results.filter(r=>r.pass).length; const fail=results.length-pass; console.table(results);
+        if(fail) showToast(`❌ Tests failed: ${fail}`);
+      })();
+    }
+  </script>
 </body>
 </html>
