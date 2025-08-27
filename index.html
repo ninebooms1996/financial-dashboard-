@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Financial Dashboard — HTML + JavaScript</title>
+  <meta name="theme-color" content="#059669" />
+  <title>Financial Dashboard — HTML + JavaScript (Fixed)</title>
   <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js (CDN) -->
@@ -28,6 +29,11 @@
       </div>
     </div>
   </header>
+
+  <!-- Install app button (hidden until available) -->
+  <button id="installBtn" class="fixed bottom-4 right-4 z-50 hidden px-4 py-2 rounded-full shadow-lg bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-none">
+    ติดตั้งแอป
+  </button>
 
   <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
     <!-- Filters -->
@@ -138,7 +144,8 @@
     <footer class="text-xs text-gray-500 pb-8">ข้อมูลเก็บใน LocalStorage เมื่อไม่ล็อกอิน • ล็อกอินแล้วเก็บที่ Cloud Firestore (โปรเจ็กต์: financial-dashboard-3d5dc)</footer>
   </main>
 
-  <div id="toast" class="toast hidden"></div>
+  <!-- Toast container for small messages -->
+  <div id="toast" class="hidden fixed bottom-4 left-4 z-50 bg-black/80 text-white px-3 py-2 rounded-lg shadow"></div>
 
   <!-- Firebase SDKs (modular, via ES Modules) -->
   <!-- Firebase SDKs (Compat, no ESM) -->
@@ -235,13 +242,42 @@
       for(const t of transactions){ const d=parseDate(t.date); if(from && d<from) continue; if(to && d>to) continue; const key=toDateInput(d); const row = map.get(key)||{ key, income:0, expense:0, cost:0, net:0 }; row[t.type]+=t.amount; row.net=row.income-(row.expense+row.cost); map.set(key,row); }
       return Array.from(map.values());
     }
-    function csvEncode(rows){ const header = Object.keys(rows[0] || { id:'', date:'', type:'', category:'', note:'', amount:0 }); const esc=(v)=>`"${String(v??'').replaceAll('"','""')}"`; const lines=[header.join(',')]; for(const r of rows) lines.push(header.map(k=>esc(r[k])).join(',')); return lines.join('
-'); }
-    function csvParse(text){ const lines=text.split(/
+    function csvEncode(rows){
+      const header = Object.keys(rows[0] || { id:'', date:'', type:'', category:'', note:'', amount:0 });
+      const esc=(v)=>`"${String(v??'').replaceAll('"','""')}"`;
+      const lines=[header.join(',')];
+      for(const r of rows) lines.push(header.map(k=>esc(r[k])).join(','));
+      return lines.join('
+');
+    }
+    function csvParse(text){
+      const lines = text.split(/
 ?
-/).filter(Boolean); if(!lines.length) return []; const header=lines[0].split(',').map(h=>h.replace(/^\"|\"$/g,'')); const idx=(k)=>header.indexOf(k); const out=[]; for(let i=1;i<lines.length;i++){ const cols=[]; let cur=''; let inQ=false; for(let c=0;c<lines[i].length;c++){ const ch=lines[i][c]; if(ch==='"'){ if(inQ && lines[i][c+1]==='"'){ cur+='"'; c++; } else { inQ=!inQ; } } else if(ch===',' && !inQ){ cols.push(cur); cur=''; } else cur+=ch; } cols.push(cur); const get=(k)=>(cols[idx(k)]||'').replace(/^\"|\"$/g,''); out.push({ id:get('id')||crypto.randomUUID(), date:get('date'), type:get('type'), category:get('category'), note:get('note'), amount:parseFloat(get('amount'))||0 }); } return out; }
+/).filter(Boolean);
+      if(!lines.length) return [];
+      const header = lines[0].split(',').map(h=>h.replace(/^\"|\"$/g,''));
+      const idx = (k)=>header.indexOf(k);
+      const out=[];
+      for(let i=1;i<lines.length;i++){
+        const row = lines[i];
+        const cols=[]; let cur=''; let inQ=false;
+        for(let c=0;c<row.length;c++){
+          const ch=row[c];
+          if(ch==='"'){
+            if(inQ && row[c+1]==='"'){ cur+='"'; c++; } else { inQ=!inQ; }
+          } else if(ch===',' && !inQ){
+            cols.push(cur); cur='';
+          } else cur+=ch;
+        }
+        cols.push(cur);
+        const get=(k)=>(cols[idx(k)]||'').replace(/^\"|\"$/g,'');
+        out.push({ id:get('id')||crypto.randomUUID(), date:get('date'), type:get('type'), category:get('category'), note:get('note'), amount:parseFloat(get('amount'))||0 });
+      }
+      return out;
+    }
     function download(filename, text){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'})); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
 
+    
     function boot(){
       // Elements & state
       const els = {
@@ -394,6 +430,90 @@
         if(fail) showToast(`❌ Tests failed: ${fail}`);
       })();
     }
+  </script>
+
+  <!-- PWA: dynamic manifest + service worker + A2HS prompt -->
+  <script>
+    (function(){
+      // Generate PNG icons dynamically so we can keep a single-file deploy
+      function makeIcon(size){
+        const c=document.createElement('canvas'); c.width=c.height=size; const ctx=c.getContext('2d');
+        // background
+        ctx.fillStyle='#059669'; ctx.fillRect(0,0,size,size);
+        // currency mark
+        ctx.fillStyle='#FFFFFF'; ctx.font=`${Math.round(size*0.55)}px system-ui, -apple-system, Segoe UI, Roboto`; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('฿', size/2, size/2+Math.round(size*0.05));
+        return c.toDataURL('image/png');
+      }
+      const icon192 = makeIcon(192);
+      const icon512 = makeIcon(512);
+
+      // Create & attach manifest
+      const manifest = {
+        name: 'Financial Dashboard',
+        short_name: 'Finance',
+        start_url: '.',
+        scope: '.',
+        display: 'standalone',
+        background_color: '#ffffff',
+        theme_color: '#059669',
+        icons: [
+          { src: icon192, sizes: '192x192', type: 'image/png' },
+          { src: icon512, sizes: '512x512', type: 'image/png' }
+        ]
+      };
+      const mblob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+      const murl = URL.createObjectURL(mblob);
+      const link = document.createElement('link'); link.rel='manifest'; link.href=murl; document.head.appendChild(link);
+
+      // Add apple-touch-icon for iOS
+      const apple = document.createElement('link'); apple.rel='apple-touch-icon'; apple.href=icon192; document.head.appendChild(apple);
+
+      // Register service worker (cache-first)
+      if ('serviceWorker' in navigator) {
+        const swCode = `
+          const CACHE = 'finance-cache-v2';
+          const CORE = [ './', './index.html' ];
+          self.addEventListener('install', e=>{ e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE))); self.skipWaiting(); });
+          self.addEventListener('activate', e=>{ e.waitUntil((async()=>{ const keys=await caches.keys(); await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))); })()); self.clients.claim(); });
+          self.addEventListener('fetch', e=>{
+            const req = e.request;
+            e.respondWith((async()=>{
+              const cache = await caches.open(CACHE);
+              const hit = await cache.match(req);
+              if(hit) return hit;
+              try{
+                const res = await fetch(req);
+                if(req.method==='GET' && res.ok && new URL(req.url).origin!==self.location.origin ? res.type==='opaque'||res.type==='basic' : true){
+                  cache.put(req, res.clone());
+                }
+                return res;
+              }catch(err){
+                const indexHit = await cache.match('./index.html');
+                return indexHit || new Response('Offline', {status:503,statusText:'Offline'});
+              }
+            })());
+          });
+        `;
+        const blob = new Blob([swCode], {type:'text/javascript'});
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl).catch(err=>console.warn('SW register fail', err));
+      }
+
+      // Handle A2HS prompt
+      let deferred;
+      const btn = document.getElementById('installBtn');
+      window.addEventListener('beforeinstallprompt', (e)=>{
+        e.preventDefault(); deferred = e; btn.classList.remove('hidden');
+      });
+      btn?.addEventListener('click', async ()=>{
+        if(!deferred) return; btn.disabled=true; try{ await deferred.prompt(); const choice = await deferred.userChoice; if(choice.outcome==='accepted'){ btn.classList.add('hidden'); } } finally { btn.disabled=false; deferred=null; }
+      });
+
+      // If already installed, hide button
+      window.matchMedia('(display-mode: standalone)').addEventListener('change', (e)=>{ if(e.matches) btn?.classList.add('hidden'); });
+      if (window.matchMedia('(display-mode: standalone)').matches) btn?.classList.add('hidden');
+    })();
   </script>
 </body>
 </html>
