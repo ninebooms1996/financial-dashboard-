@@ -1,8 +1,570 @@
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{uid}/companies/{company}/transactions/{doc} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-  }
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Financial Dashboard — Company Bookkeeping</title>
+  <!-- Modern minimal UI without build step -->
+  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.0.6/css/pico.min.css">
+  <style>
+    :root { --brand: 26 100% 50%; }
+    header .grid { align-items: center; }
+    .badge { padding: .25rem .5rem; border-radius: 999px; background: var(--pico-muted-border-color); font-size: .75rem;}
+    .hidden { display: none !important; }
+    .table-wrap { overflow:auto; max-height: 50vh; }
+    .positive { color: #127a2e; font-weight: 600; }
+    .negative { color: #b00020; font-weight: 600; }
+    .mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .pill { border: 1px solid var(--pico-muted-border-color); border-radius: 999px; padding: .4rem .75rem; }
+    .toolbar { gap: .5rem; display:flex; flex-wrap: wrap; align-items:center }
+  </style>
+</head>
+<body>
+<main class="container">
+
+  <header>
+    <div class="grid">
+      <div>
+        <h1 style="margin-bottom:.25rem">Financial Dashboard</h1>
+        <small>บันทึกรายรับ-รายจ่าย • Export สำหรับยื่นบัญชี • Realtime ด้วย Firebase</small>
+      </div>
+      <div class="toolbar" style="justify-content:flex-end">
+        <span id="userBadge" class="badge hidden"></span>
+        <button id="btnSignIn" class="contrast">เข้าสู่ระบบด้วย Google</button>
+        <button id="btnSignOut" class="secondary hidden">ออกจากระบบ</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Company / period controls -->
+  <section id="controls" class="hidden">
+    <article>
+      <div class="grid">
+        <div>
+          <label>ชื่อบริษัท
+            <input id="companyName" type="text" placeholder="เช่น บริษัท เอ บี ซี จำกัด" required>
+          </label>
+          <small>เก็บอัตโนมัติในเครื่อง และใช้เป็นแฟ้มใน Firestore</small>
+        </div>
+        <div>
+          <label>รอบบัญชี (เดือน)
+            <input id="monthPicker" type="month" required>
+          </label>
+        </div>
+      </div>
+      <div class="toolbar" style="margin-top:.5rem">
+        <button id="btnApply" class="primary">บันทึกชื่อบริษัท / โหลดข้อมูล</button>
+        <button id="btnExportCSV" class="secondary">Export CSV</button>
+        <button id="btnExportPDF" class="secondary">Export PDF</button>
+        <button id="btnPrint" class="secondary">พิมพ์รายงาน</button>
+      </div>
+    </article>
+  </section>
+
+  <!-- KPI cards -->
+  <section id="kpis" class="hidden">
+    <div class="grid">
+      <article>
+        <hgroup>
+          <h3>รายรับเดือนนี้</h3>
+          <h2 class="positive mono" id="kpiIncome">฿0.00</h2>
+        </hgroup>
+      </article>
+      <article>
+        <hgroup>
+          <h3>รายจ่ายเดือนนี้</h3>
+          <h2 class="negative mono" id="kpiExpense">฿0.00</h2>
+        </hgroup>
+      </article>
+      <article>
+        <hgroup>
+          <h3>คงเหลือ (สุทธิ)</h3>
+          <h2 class="mono" id="kpiNet">฿0.00</h2>
+        </hgroup>
+      </article>
+    </div>
+  </section>
+
+  <!-- Chart -->
+  <section id="chartWrap" class="hidden">
+    <article>
+      <header>
+        <h3 style="margin:0">กราฟรายวัน: รายรับ vs รายจ่าย</h3>
+        <small id="periodLabel"></small>
+      </header>
+      <canvas id="dailyChart" height="120"></canvas>
+    </article>
+  </section>
+
+  <!-- Add transaction -->
+  <section id="formWrap" class="hidden">
+    <article>
+      <h3 style="margin-top:0">บันทึกรายการใหม่</h3>
+      <form id="txForm">
+        <div class="grid">
+          <label>วันที่-เวลา
+            <input id="txDate" type="datetime-local" required>
+          </label>
+          <label>ประเภทรายการ
+            <select id="txType" required>
+              <option value="income">รายรับ</option>
+              <option value="expense">รายจ่าย</option>
+            </select>
+          </label>
+          <label>หมวดหมู่
+            <select id="txCategory" required>
+              <option>Sales</option><option>Service</option><option>Salary</option>
+              <option>Rent</option><option>Utilities</option><option>Supplies</option>
+              <option>Other</option>
+            </select>
+          </label>
+          <label>จำนวนเงิน (บาท)
+            <input id="txAmount" type="number" step="0.01" min="0" required>
+          </label>
+        </div>
+        <label>หมายเหตุ
+          <input id="txNote" type="text" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)">
+        </label>
+        <div class="toolbar">
+          <button type="submit" class="primary">บันทึกรายการ</button>
+          <span id="txMsg"></span>
+        </div>
+      </form>
+    </article>
+  </section>
+
+  <!-- Table -->
+  <section id="tableWrap" class="hidden">
+    <article>
+      <header class="grid">
+        <div>
+          <h3 style="margin:0">รายการเดือนนี้</h3>
+          <small id="countLabel">0 รายการ</small>
+        </div>
+        <div class="toolbar" style="justify-content:flex-end">
+          <input id="searchBox" class="pill" placeholder="ค้นหา: หมวด/หมายเหตุ…" />
+        </div>
+      </header>
+      <div class="table-wrap">
+        <table id="txTable">
+          <thead>
+            <tr>
+              <th>วันที่</th>
+              <th>เวลา</th>
+              <th>ประเภท</th>
+              <th>หมวด</th>
+              <th style="text-align:right">จำนวนเงิน</th>
+              <th>หมายเหตุ</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="txBody"></tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <footer style="margin-top:2rem">
+    <small>Project: <b>financial dashboard</b> • Project ID: <b>financial-dashboard-3d5dc</b> • Firestore &amp; Auth (Google)</small>
+  </footer>
+</main>
+
+<!-- Firebase SDK (Compat for simplicity) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<script>
+/** ---------- Firebase Init ---------- **/
+const firebaseConfig = {
+  apiKey: "AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo",
+  authDomain: "financial-dashboard-3d5dc.firebaseapp.com",
+  projectId: "financial-dashboard-3d5dc",
+  // storageBucket, appId, messagingSenderId ไม่จำเป็นสำหรับ Auth/Firestore
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/** ---------- UI Refs ---------- **/
+const btnSignIn = document.getElementById('btnSignIn');
+const btnSignOut = document.getElementById('btnSignOut');
+const userBadge = document.getElementById('userBadge');
+
+const controls = document.getElementById('controls');
+const formWrap = document.getElementById('formWrap');
+const chartWrap = document.getElementById('chartWrap');
+const tableWrap = document.getElementById('tableWrap');
+const kpis = document.getElementById('kpis');
+
+const companyName = document.getElementById('companyName');
+const monthPicker = document.getElementById('monthPicker');
+const btnApply = document.getElementById('btnApply');
+
+const kpiIncome = document.getElementById('kpiIncome');
+const kpiExpense = document.getElementById('kpiExpense');
+const kpiNet = document.getElementById('kpiNet');
+const periodLabel = document.getElementById('periodLabel');
+
+const txForm = document.getElementById('txForm');
+const txDate = document.getElementById('txDate');
+const txType = document.getElementById('txType');
+const txCategory = document.getElementById('txCategory');
+const txAmount = document.getElementById('txAmount');
+const txNote = document.getElementById('txNote');
+const txMsg = document.getElementById('txMsg');
+
+const txBody = document.getElementById('txBody');
+const countLabel = document.getElementById('countLabel');
+const searchBox = document.getElementById('searchBox');
+
+const btnExportCSV = document.getElementById('btnExportCSV');
+const btnExportPDF = document.getElementById('btnExportPDF');
+const btnPrint = document.getElementById('btnPrint');
+
+/** ---------- State ---------- **/
+let currentUser = null;
+let unsubscribe = null;
+let txCache = [];           // รายการที่แสดงในตาราง
+let chart = null;
+
+/** ---------- Helpers ---------- **/
+const pad2 = (n)=> String(n).padStart(2,'0');
+const fmtBaht = (n)=> '฿' + (Number(n || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const toLocalDateTimeInput = (d)=> {
+  const dt = new Date(d);
+  const y = dt.getFullYear(), m=pad2(dt.getMonth()+1), da=pad2(dt.getDate());
+  const h=pad2(dt.getHours()), mi=pad2(dt.getMinutes());
+  return `${y}-${m}-${da}T${h}:${mi}`;
+};
+const monthRange = (yyyyMM)=>{
+  const [y,m] = yyyyMM.split('-').map(Number);
+  const start = new Date(y, m-1, 1, 0,0,0,0);
+  const end   = new Date(y, m,   1, 0,0,0,0);
+  return {start, end};
+};
+const sanitizeId = s => (s || 'default').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+
+function getTxCollectionRef(){
+  const comp = sanitizeId(companyName.value);
+  return db
+    .collection('users').doc(currentUser.uid)
+    .collection('companies').doc(comp)
+    .collection('transactions');
 }
+
+function setSectionVisibility(isAuthed){
+  const show = (el, v)=> el.classList.toggle('hidden', !v);
+  show(controls, isAuthed);
+  show(formWrap, isAuthed);
+  show(chartWrap, isAuthed);
+  show(tableWrap, isAuthed);
+  show(kpis, isAuthed);
+  btnSignIn.classList.toggle('hidden', isAuthed);
+  btnSignOut.classList.toggle('hidden', !isAuthed);
+  userBadge.classList.toggle('hidden', !isAuthed);
+}
+
+function saveLocal(){
+  localStorage.setItem('companyName', companyName.value.trim());
+  localStorage.setItem('monthPicker', monthPicker.value);
+}
+
+function loadLocal(){
+  companyName.value = localStorage.getItem('companyName') || '';
+  monthPicker.value = localStorage.getItem('monthPicker') || new Date().toISOString().slice(0,7);
+}
+
+/** ---------- Auth ---------- **/
+btnSignIn.addEventListener('click', async ()=>{
+  const provider = new firebase.auth.GoogleAuthProvider();
+  await auth.signInWithPopup(provider);
+});
+
+btnSignOut.addEventListener('click', async ()=>{
+  if(unsubscribe){ unsubscribe(); unsubscribe=null; }
+  await auth.signOut();
+});
+
+auth.onAuthStateChanged(user=>{
+  currentUser = user || null;
+  if(user){
+    userBadge.textContent = `${user.displayName || user.email}`;
+    setSectionVisibility(true);
+    loadLocal();
+    // default tx datetime = now
+    txDate.value = toLocalDateTimeInput(new Date());
+    applyAndListen(); // โหลดข้อมูลทันที
+  } else {
+    setSectionVisibility(false);
+  }
+});
+
+/** ---------- Load & listen ---------- **/
+btnApply.addEventListener('click', applyAndListen);
+
+async function applyAndListen(){
+  if(!currentUser) return;
+  saveLocal();
+  if(unsubscribe){ unsubscribe(); unsubscribe=null; }
+
+  const {start, end} = monthRange(monthPicker.value);
+  periodLabel.textContent = `ช่วง ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}`;
+
+  const col = getTxCollectionRef();
+  // query เฉพาะเดือนนี้
+  unsubscribe = col.where('date', '>=', start).where('date','<', end).orderBy('date','asc')
+    .onSnapshot(snap=>{
+      txCache = [];
+      snap.forEach(doc=>{
+        const d = doc.data();
+        txCache.push({ id: doc.id, ...d });
+      });
+      renderTable();
+      renderKPIs();
+      renderChart();
+    }, (err)=>{
+      console.error(err);
+      alert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message);
+    });
+}
+
+/** ---------- Add transaction ---------- **/
+txForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!currentUser) return;
+
+  const dt = new Date(txDate.value);
+  const data = {
+    uid: currentUser.uid,
+    company: companyName.value.trim(),
+    type: txType.value,
+    category: txCategory.value,
+    amount: Number(txAmount.value || 0),
+    note: txNote.value.trim(),
+    date: dt,
+    createdAt: new Date(),
+    createdBy: currentUser.email || currentUser.uid
+  };
+  txMsg.textContent = '...กำลังบันทึก';
+  try{
+    await getTxCollectionRef().add(data);
+    txMsg.textContent = 'บันทึกแล้ว ✓';
+    txAmount.value = '';
+    txNote.value = '';
+    txDate.value = toLocalDateTimeInput(new Date());
+    setTimeout(()=> txMsg.textContent='', 1200);
+  }catch(err){
+    console.error(err);
+    txMsg.textContent = 'ผิดพลาด: ' + err.message;
+  }
+});
+
+/** ---------- Render table ---------- **/
+searchBox.addEventListener('input', renderTable);
+
+function renderTable(){
+  const q = (searchBox.value || '').toLowerCase();
+  const rows = txCache.filter(r=>{
+    if(!q) return true;
+    return (r.category||'').toLowerCase().includes(q) || (r.note||'').toLowerCase().includes(q);
+  });
+
+  countLabel.textContent = `${rows.length} รายการ`;
+  txBody.innerHTML = rows.map(r=>{
+    const d = new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
+    const dateStr = d.toLocaleDateString('th-TH');
+    const timeStr = d.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+    const signCls = r.type === 'income' ? 'positive' : 'negative';
+    const amountStr = (r.type === 'expense' ? '-' : '') + fmtBaht(r.amount);
+    return `
+      <tr>
+        <td>${dateStr}</td>
+        <td>${timeStr}</td>
+        <td>${r.type === 'income' ? 'รายรับ' : 'รายจ่าย'}</td>
+        <td>${r.category}</td>
+        <td style="text-align:right" class="mono ${signCls}">${amountStr}</td>
+        <td>${r.note||''}</td>
+        <td style="text-align:right">
+          <button class="secondary outline" data-del="${r.id}" title="ลบ">ลบ</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  // bind delete
+  [...document.querySelectorAll('[data-del]')].forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('ต้องการลบรายการนี้?')) return;
+      try{
+        await getTxCollectionRef().doc(btn.dataset.del).delete();
+      }catch(err){
+        alert('ลบไม่ได้: ' + err.message);
+      }
+    });
+  });
+}
+
+/** ---------- KPIs ---------- **/
+function renderKPIs(){
+  const income = txCache.filter(r=> r.type==='income').reduce((s,r)=> s + Number(r.amount||0), 0);
+  const expense = txCache.filter(r=> r.type==='expense').reduce((s,r)=> s + Number(r.amount||0), 0);
+  const net = income - expense;
+  kpiIncome.textContent = fmtBaht(income);
+  kpiExpense.textContent = fmtBaht(expense);
+  kpiNet.textContent = (net>=0? '' : '-') + fmtBaht(Math.abs(net));
+}
+
+/** ---------- Chart ---------- **/
+function renderChart(){
+  const yyyyMM = monthPicker.value;
+  const {start, end} = monthRange(yyyyMM);
+  const daysInMonth = new Date(start.getFullYear(), start.getMonth()+1, 0).getDate();
+  const labels = [...Array(daysInMonth)].map((_,i)=> String(i+1));
+
+  const incomeDaily = Array(daysInMonth).fill(0);
+  const expenseDaily = Array(daysInMonth).fill(0);
+
+  txCache.forEach(r=>{
+    const d = new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
+    const idx = d.getDate()-1;
+    if(r.type==='income') incomeDaily[idx] += Number(r.amount||0);
+    else expenseDaily[idx] += Number(r.amount||0);
+  });
+
+  const ctx = document.getElementById('dailyChart');
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'รายรับ', data: incomeDaily },
+        { label: 'รายจ่าย', data: expenseDaily }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { stacked:false },
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+/** ---------- Export ---------- **/
+function toCSV(){
+  const {start, end} = monthRange(monthPicker.value);
+  const header = [
+    'Company','PeriodStart','PeriodEnd','Date','Time','Type','Category','Amount','Note','CreatedBy'
+  ];
+  const lines = [header.join(',')];
+  txCache.forEach(r=>{
+    const d = new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
+    const date = [d.getFullYear(), pad2(d.getMonth()+1), pad2(d.getDate())].join('-');
+    const time = [pad2(d.getHours()), pad2(d.getMinutes())].join(':');
+    const row = [
+      `"${(companyName.value||'').replace(/"/g,'""')}"`,
+      start.toISOString(),
+      end.toISOString(),
+      date,
+      time,
+      r.type,
+      `"${(r.category||'').replace(/"/g,'""')}"`,
+      Number(r.amount||0),
+      `"${(r.note||'').replace(/"/g,'""')}"`,
+      `"${(r.createdBy||'').replace(/"/g,'""')}"`
+    ];
+    lines.push(row.join(','));
+  });
+  return lines.join('\n');
+}
+
+function download(filename, text, type='text/plain'){
+  const blob = new Blob([text], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+btnExportCSV.addEventListener('click', ()=>{
+  const file = `export_${sanitizeId(companyName.value)}_${monthPicker.value}.csv`;
+  download(file, toCSV(), 'text/csv;charset=utf-8');
+});
+
+btnExportPDF.addEventListener('click', ()=>{
+  openPrintable(true);
+});
+btnPrint.addEventListener('click', ()=>{
+  openPrintable(false);
+});
+
+function openPrintable(saveAsPDF){
+  const {start, end} = monthRange(monthPicker.value);
+  const income = txCache.filter(r=> r.type==='income').reduce((s,r)=> s + Number(r.amount||0), 0);
+  const expense = txCache.filter(r=> r.type==='expense').reduce((s,r)=> s + Number(r.amount||0), 0);
+  const net = income - expense;
+
+  const rows = txCache.map(r=>{
+    const d = new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
+    const date = d.toLocaleDateString('th-TH');
+    const time = d.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+    const sign = r.type==='expense' ? '-' : '';
+    return `
+      <tr>
+        <td>${date}</td><td>${time}</td><td>${r.type==='income'?'รายรับ':'รายจ่าย'}</td>
+        <td>${r.category}</td><td style="text-align:right">${sign}${fmtBaht(r.amount)}</td><td>${r.note||''}</td>
+      </tr>`;
+  }).join('');
+
+  const html = `
+<!DOCTYPE html><html lang="th"><head>
+<meta charset="utf-8"><title>Report</title>
+<style>
+  body{ font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif; padding:24px;}
+  h1,h2,h3{ margin:0 0 4px 0;}
+  .muted{ color:#666; font-size:12px;}
+  table{ width:100%; border-collapse: collapse; margin-top:16px; }
+  th,td{ border:1px solid #ddd; padding:6px 8px; font-size:13px;}
+  th{ background:#f6f6f6; text-align:left;}
+  tfoot td{ font-weight:700; }
+  .right{ text-align:right;}
+</style>
+</head><body>
+  <h2>สรุปรายรับ-รายจ่าย</h2>
+  <div class="muted">
+    บริษัท: <b>${companyName.value || '-'}</b><br>
+    ผู้พิมพ์: ${currentUser ? (currentUser.displayName || currentUser.email) : '-'}<br>
+    รอบบัญชี: ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}
+  </div>
+
+  <table>
+    <thead><tr><th>วันที่</th><th>เวลา</th><th>ประเภท</th><th>หมวด</th><th class="right">จำนวนเงิน</th><th>หมายเหตุ</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="6">ไม่มีข้อมูล</td></tr>`}</tbody>
+    <tfoot>
+      <tr><td colspan="4" class="right">รวมรายรับ</td><td class="right">${fmtBaht(income)}</td><td></td></tr>
+      <tr><td colspan="4" class="right">รวมรายจ่าย</td><td class="right">-${fmtBaht(expense)}</td><td></td></tr>
+      <tr><td colspan="4" class="right">สุทธิ</td><td class="right">${net<0?'-':''}${fmtBaht(Math.abs(net))}</td><td></td></tr>
+    </tfoot>
+  </table>
+  <script>window.addEventListener('load',()=>{ ${saveAsPDF ? 'window.print();' : ''} });</script>
+</body></html>`;
+
+  const w = window.open('', '_blank', 'width=900,height=700');
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
+/** ---------- Boot ---------- **/
+document.addEventListener('DOMContentLoaded', ()=>{
+  // ตั้งค่าเริ่มต้น
+  loadLocal();
+});
+</script>
+</body>
+</html>
