@@ -7,134 +7,226 @@
   <!-- Minimal modern UI (no build) -->
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.0.6/css/pico.min.css">
   <style>
-    header .grid{align-items:center}
-    .hidden{display:none!important}
-    .badge{padding:.25rem .5rem;border-radius:999px;background:var(--pico-muted-border-color);font-size:.75rem}
-    .table-wrap{overflow:auto;max-height:50vh}
-    .mono{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
-    .positive{color:#127a2e;font-weight:600}
-    .negative{color:#b00020;font-weight:600}
-    .pill{border:1px solid var(--pico-muted-border-color);border-radius:999px;padding:.4rem .75rem}
-    .toolbar{gap:.5rem;display:flex;flex-wrap:wrap;align-items:center}
+    :root{
+      --brand-1: #0ea5e9; /* sky-500 */
+      --brand-2: #6366f1; /* indigo-500 */
+    }
+    body{ background: #0b1020; }
+    .app-shell{ max-width: 1100px; }
+    .hidden{ display:none!important }
+    .badge{ padding:.25rem .5rem;border-radius:999px;background:rgba(255,255,255,.1);font-size:.75rem }
+    .table-wrap{ overflow:auto; max-height:50vh }
+    .mono{ font-variant-numeric:tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace }
+    .positive{ color:#16a34a; font-weight:600 }
+    .negative{ color:#dc2626; font-weight:600 }
+    .pill{ border:1px solid var(--pico-muted-border-color); border-radius:999px; padding:.4rem .75rem }
+    .toolbar{ gap:.5rem; display:flex; flex-wrap:wrap; align-items:center }
+
+    /* ===== Login (Company Portal) ===== */
+    .login-hero{
+      min-height: 100dvh;
+      display:grid;
+      grid-template-columns: 1fr;
+      background:
+        radial-gradient(60% 60% at 10% 10%, rgba(99,102,241,.25), transparent 60%),
+        radial-gradient(60% 60% at 90% 10%, rgba(14,165,233,.20), transparent 60%),
+        radial-gradient(60% 60% at 50% 90%, rgba(14,165,233,.12), transparent 60%),
+        #0b1020;
+      color:#e5e7eb;
+    }
+    @media(min-width: 992px){
+      .login-hero{ grid-template-columns: 1.2fr .8fr; }
+    }
+    .brand-pane{
+      padding: min(8vw, 80px);
+      display:flex; flex-direction:column; justify-content:center;
+    }
+    .brand-mark{
+      display:flex; align-items:center; gap:.75rem; margin-bottom:1rem;
+    }
+    .brand-logo{
+      width:48px;height:48px;border-radius:14px;
+      background:linear-gradient(135deg, var(--brand-1), var(--brand-2));
+      box-shadow:0 10px 30px rgba(14,165,233,.25), inset 0 0 30px rgba(255,255,255,.15);
+    }
+    .brand-title{ font-weight:700; letter-spacing:.2px; }
+    .brand-tag{ color:#a5b4fc; }
+    .showcase{
+      margin-top:1.25rem; display:grid; gap:.5rem; grid-template-columns:repeat(3, minmax(0,1fr));
+    }
+    .chip{
+      padding:.5rem .75rem; border-radius:999px; backdrop-filter: blur(6px);
+      background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10);
+      text-align:center; font-size:.85rem; color:#dbeafe;
+    }
+    .login-card{
+      padding:min(5vw, 56px); display:flex; align-items:center; justify-content:center;
+    }
+    .card{
+      width:100%; max-width: 460px; padding:28px 24px; border-radius:18px;
+      background:rgba(15,23,42,.8); border:1px solid rgba(255,255,255,.10);
+      box-shadow: 0 20px 40px rgba(2,6,23,.6);
+      color:#e5e7eb;
+    }
+    .card h2{ margin:0 0 .25rem 0 }
+    .muted{ color:#94a3b8; font-size:.95rem }
+    .btn-google{
+      width:100%; display:flex; gap:.6rem; align-items:center; justify-content:center;
+      background:#111827; color:#e5e7eb; border:1px solid rgba(255,255,255,.1);
+    }
+    .btn-google:hover{ background:#0b1324; }
+    .gmark{ width:18px;height:18px; border-radius:4px; background: conic-gradient(from 0deg, #4285F4 0 25%, #34A853 25% 50%, #FBBC05 50% 75%, #EA4335 75% 100%); }
+    .links{ display:flex; justify-content:space-between; gap:.75rem; margin-top:.75rem }
+    .links a{ color:#a5b4fc; text-decoration:none }
+    .links a:hover{ text-decoration:underline }
+
+    /* ===== Dashboard ===== */
+    .dash-header{ align-items:center }
+    .app-surface{
+      background:#0f172a; color:#e5e7eb; border:1px solid rgba(255,255,255,.08);
+      border-radius:16px; padding:16px 18px;
+    }
+    .card-inset{
+      background:#0b1324; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:12px 14px;
+    }
+    table{ color:#e5e7eb }
+    th{ background:#0b1324 }
   </style>
 </head>
 <body>
-<main class="container">
-  <header>
-    <div class="grid">
+
+<!-- ======================= LOGIN (COMPANY PORTAL) ======================= -->
+<section id="loginSection" class="login-hero">
+  <div class="brand-pane">
+    <div class="brand-mark">
+      <div class="brand-logo"></div>
       <div>
-        <h1 style="margin-bottom:.25rem">Financial Dashboard</h1>
-        <small>บันทึกรายรับ-รายจ่าย • Export สำหรับยื่นบัญชี • Realtime ด้วย Firebase</small>
+        <div class="brand-title">NineBooms Technologies</div>
+        <small class="brand-tag">Secure Finance Portal</small>
       </div>
-      <div class="toolbar" style="justify-content:flex-end">
-        <span id="userBadge" class="badge hidden"></span>
-        <button id="btnSignIn" class="contrast">เข้าสู่ระบบด้วย Google</button>
-        <button id="btnSignOut" class="secondary hidden">ออกจากระบบ</button>
+    </div>
+    <h1 style="margin:.25rem 0 0 0; color:#e2e8f0">บริหารการเงินระดับองค์กร</h1>
+    <p class="muted" style="max-width:60ch">
+      จัดทำสมุดรายรับ-รายจ่าย, กราฟสรุปรายวัน, และเอกสาร Export สำหรับยื่นบัญชี <br>
+      เชื่อมต่อด้วย Google และบันทึกแบบเรียลไทม์บน Firebase
+    </p>
+    <div class="showcase">
+      <div class="chip">Realtime Firestore</div>
+      <div class="chip">Export CSV / PDF</div>
+      <div class="chip">Monthly Filter</div>
+    </div>
+  </div>
+
+  <div class="login-card">
+    <article class="card">
+      <h2>เข้าสู่ระบบ</h2>
+      <p class="muted">ล็อกอินด้วยบัญชีบริษัทเพื่อเข้าถึงแดชบอร์ด</p>
+      <button id="btnSignIn" class="btn-google">
+        <span class="gmark"></span> เข้าสู่ระบบด้วย Google
+      </button>
+      <label style="margin-top:.9rem">
+        ชื่อบริษัท (แสดงในรายงานและใช้เป็นแฟ้มข้อมูล)
+        <input id="preCompany" type="text" placeholder="เช่น บริษัท เอ บี ซี จำกัด">
+      </label>
+      <div class="links">
+        <a href="#" onclick="alert('ตัวอย่าง Terms');return false;">Terms</a>
+        <a href="#" onclick="alert('ตัวอย่าง Privacy Policy');return false;">Privacy</a>
       </div>
+    </article>
+  </div>
+</section>
+
+<!-- ======================= DASHBOARD ======================= -->
+<main id="dashboard" class="container app-shell hidden">
+  <header class="grid dash-header">
+    <div>
+      <h1 style="margin-bottom:.25rem">Financial Dashboard</h1>
+      <small class="muted">บันทึกรายรับ-รายจ่าย • Export สำหรับยื่นบัญชี • Realtime ด้วย Firebase</small>
+    </div>
+    <div style="display:flex; gap:.5rem; justify-content:flex-end; align-items:center">
+      <span id="userBadge" class="badge hidden"></span>
+      <button id="btnSignOut" class="secondary">ออกจากระบบ</button>
     </div>
   </header>
 
   <!-- Controls -->
-  <section id="controls" class="hidden">
-    <article>
-      <div class="grid">
-        <div>
-          <label>ชื่อบริษัท
-            <input id="companyName" type="text" placeholder="เช่น บริษัท เอ บี ซี จำกัด" required>
-          </label>
-          <small>ใช้เป็นแฟ้มใน Firestore และจำชื่อในเครื่อง</small>
-        </div>
-        <div>
-          <label>รอบบัญชี (เดือน)
-            <input id="monthPicker" type="month" required>
-          </label>
-        </div>
+  <section class="app-surface">
+    <div class="grid">
+      <div>
+        <label>ชื่อบริษัท
+          <input id="companyName" type="text" placeholder="เช่น บริษัท เอ บี ซี จำกัด" required>
+        </label>
+        <small class="muted">จำในเครื่อง และใช้เป็นแฟ้มใน Firestore</small>
       </div>
-      <div class="toolbar" style="margin-top:.5rem">
-        <button id="btnApply" class="primary">บันทึกชื่อบริษัท / โหลดข้อมูล</button>
+      <div>
+        <label>รอบบัญชี (เดือน)
+          <input id="monthPicker" type="month" required>
+        </label>
+      </div>
+      <div style="display:flex; align-items:end; gap:.5rem">
+        <button id="btnApply" class="primary">โหลดข้อมูล</button>
         <button id="btnExportCSV" class="secondary">Export CSV</button>
         <button id="btnExportPDF" class="secondary">Export PDF</button>
         <button id="btnPrint" class="secondary">พิมพ์รายงาน</button>
       </div>
-    </article>
+    </div>
   </section>
 
   <!-- KPIs -->
-  <section id="kpis" class="hidden">
+  <section>
     <div class="grid">
-      <article><hgroup><h3>รายรับเดือนนี้</h3><h2 class="positive mono" id="kpiIncome">฿0.00</h2></hgroup></article>
-      <article><hgroup><h3>รายจ่ายเดือนนี้</h3><h2 class="negative mono" id="kpiExpense">฿0.00</h2></hgroup></article>
-      <article><hgroup><h3>คงเหลือ (สุทธิ)</h3><h2 class="mono" id="kpiNet">฿0.00</h2></hgroup></article>
+      <article class="card-inset"><hgroup><h3>รายรับเดือนนี้</h3><h2 class="positive mono" id="kpiIncome">฿0.00</h2></hgroup></article>
+      <article class="card-inset"><hgroup><h3>รายจ่ายเดือนนี้</h3><h2 class="negative mono" id="kpiExpense">฿0.00</h2></hgroup></article>
+      <article class="card-inset"><hgroup><h3>คงเหลือ (สุทธิ)</h3><h2 class="mono" id="kpiNet">฿0.00</h2></hgroup></article>
     </div>
   </section>
 
   <!-- Chart -->
-  <section id="chartWrap" class="hidden">
-    <article>
+  <section>
+    <article class="card-inset">
       <header>
         <h3 style="margin:0">กราฟรายวัน: รายรับ vs รายจ่าย</h3>
-        <small id="periodLabel"></small>
+        <small id="periodLabel" class="muted"></small>
       </header>
-      <canvas id="dailyChart" height="120"></canvas>
+      <canvas id="dailyChart" height="140"></canvas>
     </article>
   </section>
 
   <!-- Add transaction -->
-  <section id="formWrap" class="hidden">
-    <article>
+  <section>
+    <article class="card-inset">
       <h3 style="margin-top:0">บันทึกรายการใหม่</h3>
       <form id="txForm">
         <div class="grid">
-          <label>วันที่-เวลา
-            <input id="txDate" type="datetime-local" required>
-          </label>
-          <label>ประเภทรายการ
-            <select id="txType" required>
-              <option value="income">รายรับ</option>
-              <option value="expense">รายจ่าย</option>
-            </select>
+          <label>วันที่-เวลา <input id="txDate" type="datetime-local" required></label>
+          <label>ประเภท
+            <select id="txType" required><option value="income">รายรับ</option><option value="expense">รายจ่าย</option></select>
           </label>
           <label>หมวดหมู่
             <select id="txCategory" required>
               <option>Sales</option><option>Service</option><option>Salary</option>
-              <option>Rent</option><option>Utilities</option><option>Supplies</option>
-              <option>Other</option>
+              <option>Rent</option><option>Utilities</option><option>Supplies</option><option>Other</option>
             </select>
           </label>
-          <label>จำนวนเงิน (บาท)
-            <input id="txAmount" type="number" step="0.01" min="0" required>
-          </label>
+          <label>จำนวนเงิน (บาท) <input id="txAmount" type="number" step="0.01" min="0" required></label>
         </div>
-        <label>หมายเหตุ
-          <input id="txNote" type="text" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)">
-        </label>
-        <div class="toolbar">
-          <button type="submit" class="primary">บันทึกรายการ</button>
-          <span id="txMsg"></span>
-        </div>
+        <label>หมายเหตุ <input id="txNote" type="text" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"></label>
+        <div class="toolbar"><button type="submit" class="primary">บันทึก</button><span id="txMsg"></span></div>
       </form>
     </article>
   </section>
 
   <!-- Table -->
-  <section id="tableWrap" class="hidden">
-    <article>
+  <section>
+    <article class="card-inset">
       <header class="grid">
-        <div>
-          <h3 style="margin:0">รายการเดือนนี้</h3>
-          <small id="countLabel">0 รายการ</small>
-        </div>
-        <div class="toolbar" style="justify-content:flex-end">
-          <input id="searchBox" class="pill" placeholder="ค้นหา: หมวด/หมายเหตุ…" />
-        </div>
+        <div><h3 style="margin:0">รายการเดือนนี้</h3><small id="countLabel" class="muted">0 รายการ</small></div>
+        <div style="display:flex;justify-content:flex-end"><input id="searchBox" class="pill" placeholder="ค้นหา: หมวด/หมายเหตุ…"></div>
       </header>
       <div class="table-wrap">
-        <table id="txTable">
+        <table>
           <thead>
-            <tr>
-              <th>วันที่</th><th>เวลา</th><th>ประเภท</th><th>หมวด</th>
-              <th style="text-align:right">จำนวนเงิน</th><th>หมายเหตุ</th><th></th>
-            </tr>
+            <tr><th>วันที่</th><th>เวลา</th><th>ประเภท</th><th>หมวด</th><th style="text-align:right">จำนวนเงิน</th><th>หมายเหตุ</th><th></th></tr>
           </thead>
           <tbody id="txBody"></tbody>
         </table>
@@ -142,8 +234,8 @@
     </article>
   </section>
 
-  <footer style="margin-top:2rem">
-    <small>Project: <b>financial dashboard</b> • Project ID: <b>financial-dashboard-3d5dc</b></small>
+  <footer style="margin:1.5rem 0">
+    <small class="muted">Project: <b>financial dashboard</b> • Project ID: <b>financial-dashboard-3d5dc</b> • Firestore & Auth (Google)</small>
   </footer>
 </main>
 
@@ -165,26 +257,23 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* ------------ Refs & State ------------- */
-const $ = (id)=>document.getElementById(id);
+/* ------------ Refs ------------- */
+const $  = (id)=> document.getElementById(id);
+const loginSection = $('loginSection');
+const dashboard    = $('dashboard');
+const preCompany   = $('preCompany');
 
-const btnSignIn = $('btnSignIn');
-const btnSignOut = $('btnSignOut');
 const userBadge = $('userBadge');
-
-const controls = $('controls');
-const formWrap = $('formWrap');
-const chartWrap = $('chartWrap');
-const tableWrap = $('tableWrap');
-const kpis = $('kpis');
+const btnSignIn = $('btnSignIn');
+const btnSignOut= $('btnSignOut');
 
 const companyName = $('companyName');
 const monthPicker = $('monthPicker');
-const btnApply = $('btnApply');
+const btnApply    = $('btnApply');
 
-const kpiIncome = $('kpiIncome');
-const kpiExpense = $('kpiExpense');
-const kpiNet = $('kpiNet');
+const kpiIncome   = $('kpiIncome');
+const kpiExpense  = $('kpiExpense');
+const kpiNet      = $('kpiNet');
 const periodLabel = $('periodLabel');
 
 const txForm = $('txForm');
@@ -193,16 +282,17 @@ const txType = $('txType');
 const txCategory = $('txCategory');
 const txAmount = $('txAmount');
 const txNote = $('txNote');
-const txMsg = $('txMsg');
+const txMsg  = $('txMsg');
 
 const txBody = $('txBody');
 const countLabel = $('countLabel');
-const searchBox = $('searchBox');
+const searchBox  = $('searchBox');
 
 const btnExportCSV = $('btnExportCSV');
 const btnExportPDF = $('btnExportPDF');
-const btnPrint = $('btnPrint');
+const btnPrint     = $('btnPrint');
 
+/* ------------ State ------------- */
 let currentUser = null;
 let unsubscribe = null;
 let txCache = [];
@@ -229,18 +319,23 @@ function getTxCollectionRef(){
            .collection('companies').doc(comp)
            .collection('transactions');
 }
-function showAuthed(v){
-  [controls, formWrap, chartWrap, tableWrap, kpis].forEach(el=>el.classList.toggle('hidden', !v));
-  btnSignIn.classList.toggle('hidden', v);
-  btnSignOut.classList.toggle('hidden', !v);
-  userBadge.classList.toggle('hidden', !v);
+
+function goto(state){
+  if(state==='authed'){
+    loginSection.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+  }else{
+    dashboard.classList.add('hidden');
+    loginSection.classList.remove('hidden');
+  }
 }
+
 function saveLocal(){
   localStorage.setItem('companyName', companyName.value.trim());
   localStorage.setItem('monthPicker', monthPicker.value);
 }
 function loadLocal(){
-  companyName.value = localStorage.getItem('companyName') || '';
+  companyName.value = localStorage.getItem('companyName') || (preCompany.value || '');
   monthPicker.value = localStorage.getItem('monthPicker') || new Date().toISOString().slice(0,7);
 }
 
@@ -253,16 +348,17 @@ btnSignOut.addEventListener('click', async ()=>{
   if(unsubscribe){ unsubscribe(); unsubscribe=null; }
   await auth.signOut();
 });
+
 auth.onAuthStateChanged(user=>{
   currentUser = user || null;
   if(user){
     userBadge.textContent = user.displayName || user.email;
-    showAuthed(true);
+    goto('authed');
     loadLocal();
     txDate.value = toLocalDateTimeInput(new Date());
     applyAndListen();
   }else{
-    showAuthed(false);
+    goto('anon');
   }
 });
 
@@ -272,10 +368,8 @@ function applyAndListen(){
   if(!currentUser) return;
   saveLocal();
   if(unsubscribe){ unsubscribe(); unsubscribe=null; }
-
   const {start, end} = monthRange(monthPicker.value);
   periodLabel.textContent = `ช่วง ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}`;
-
   unsubscribe = getTxCollectionRef()
     .where('date','>=',start).where('date','<',end).orderBy('date','asc')
     .onSnapshot(snap=>{
@@ -288,7 +382,6 @@ function applyAndListen(){
 txForm.addEventListener('submit', async (e)=>{
   e.preventDefault();
   if(!currentUser) return;
-
   const dt = new Date(txDate.value);
   const data = {
     uid: currentUser.uid,
@@ -314,7 +407,7 @@ txForm.addEventListener('submit', async (e)=>{
 });
 
 /* ------------ Table ------------- */
-searchBox.addEventListener('input', renderTable);
+$('searchBox').addEventListener('input', renderTable);
 function renderTable(){
   const q = (searchBox.value||'').toLowerCase();
   const rows = txCache.filter(r=>{
@@ -329,8 +422,7 @@ function renderTable(){
     const signCls = r.type==='income' ? 'positive':'negative';
     const amount = (r.type==='expense' ? '-' : '') + fmtBaht(r.amount);
     return `<tr>
-      <td>${dateStr}</td>
-      <td>${timeStr}</td>
+      <td>${dateStr}</td><td>${timeStr}</td>
       <td>${r.type==='income'?'รายรับ':'รายจ่าย'}</td>
       <td>${r.category}</td>
       <td style="text-align:right" class="mono ${signCls}">${amount}</td>
@@ -475,7 +567,9 @@ tfoot td{font-weight:700}
 
 /* ------------ Boot ------------- */
 document.addEventListener('DOMContentLoaded', ()=>{
-  loadLocal();
+  // preload preCompany into companyName after login
+  preCompany.addEventListener('input', ()=> localStorage.setItem('preCompany', preCompany.value.trim()));
+  preCompany.value = localStorage.getItem('preCompany') || '';
 });
 </script>
 </body>
