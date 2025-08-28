@@ -4,24 +4,22 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Financial Dashboard — Company Bookkeeping</title>
-  <!-- Modern minimal UI without build step -->
+  <!-- Minimal modern UI (no build) -->
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.0.6/css/pico.min.css">
   <style>
-    :root { --brand: 26 100% 50%; }
-    header .grid { align-items: center; }
-    .badge { padding: .25rem .5rem; border-radius: 999px; background: var(--pico-muted-border-color); font-size: .75rem;}
-    .hidden { display: none !important; }
-    .table-wrap { overflow:auto; max-height: 50vh; }
-    .positive { color: #127a2e; font-weight: 600; }
-    .negative { color: #b00020; font-weight: 600; }
-    .mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
-    .pill { border: 1px solid var(--pico-muted-border-color); border-radius: 999px; padding: .4rem .75rem; }
-    .toolbar { gap: .5rem; display:flex; flex-wrap: wrap; align-items:center }
+    header .grid{align-items:center}
+    .hidden{display:none!important}
+    .badge{padding:.25rem .5rem;border-radius:999px;background:var(--pico-muted-border-color);font-size:.75rem}
+    .table-wrap{overflow:auto;max-height:50vh}
+    .mono{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+    .positive{color:#127a2e;font-weight:600}
+    .negative{color:#b00020;font-weight:600}
+    .pill{border:1px solid var(--pico-muted-border-color);border-radius:999px;padding:.4rem .75rem}
+    .toolbar{gap:.5rem;display:flex;flex-wrap:wrap;align-items:center}
   </style>
 </head>
 <body>
 <main class="container">
-
   <header>
     <div class="grid">
       <div>
@@ -36,7 +34,7 @@
     </div>
   </header>
 
-  <!-- Company / period controls -->
+  <!-- Controls -->
   <section id="controls" class="hidden">
     <article>
       <div class="grid">
@@ -44,7 +42,7 @@
           <label>ชื่อบริษัท
             <input id="companyName" type="text" placeholder="เช่น บริษัท เอ บี ซี จำกัด" required>
           </label>
-          <small>เก็บอัตโนมัติในเครื่อง และใช้เป็นแฟ้มใน Firestore</small>
+          <small>ใช้เป็นแฟ้มใน Firestore และจำชื่อในเครื่อง</small>
         </div>
         <div>
           <label>รอบบัญชี (เดือน)
@@ -61,27 +59,12 @@
     </article>
   </section>
 
-  <!-- KPI cards -->
+  <!-- KPIs -->
   <section id="kpis" class="hidden">
     <div class="grid">
-      <article>
-        <hgroup>
-          <h3>รายรับเดือนนี้</h3>
-          <h2 class="positive mono" id="kpiIncome">฿0.00</h2>
-        </hgroup>
-      </article>
-      <article>
-        <hgroup>
-          <h3>รายจ่ายเดือนนี้</h3>
-          <h2 class="negative mono" id="kpiExpense">฿0.00</h2>
-        </hgroup>
-      </article>
-      <article>
-        <hgroup>
-          <h3>คงเหลือ (สุทธิ)</h3>
-          <h2 class="mono" id="kpiNet">฿0.00</h2>
-        </hgroup>
-      </article>
+      <article><hgroup><h3>รายรับเดือนนี้</h3><h2 class="positive mono" id="kpiIncome">฿0.00</h2></hgroup></article>
+      <article><hgroup><h3>รายจ่ายเดือนนี้</h3><h2 class="negative mono" id="kpiExpense">฿0.00</h2></hgroup></article>
+      <article><hgroup><h3>คงเหลือ (สุทธิ)</h3><h2 class="mono" id="kpiNet">฿0.00</h2></hgroup></article>
     </div>
   </section>
 
@@ -149,13 +132,8 @@
         <table id="txTable">
           <thead>
             <tr>
-              <th>วันที่</th>
-              <th>เวลา</th>
-              <th>ประเภท</th>
-              <th>หมวด</th>
-              <th style="text-align:right">จำนวนเงิน</th>
-              <th>หมายเหตุ</th>
-              <th></th>
+              <th>วันที่</th><th>เวลา</th><th>ประเภท</th><th>หมวด</th>
+              <th style="text-align:right">จำนวนเงิน</th><th>หมายเหตุ</th><th></th>
             </tr>
           </thead>
           <tbody id="txBody"></tbody>
@@ -165,11 +143,11 @@
   </section>
 
   <footer style="margin-top:2rem">
-    <small>Project: <b>financial dashboard</b> • Project ID: <b>financial-dashboard-3d5dc</b> • Firestore &amp; Auth (Google)</small>
+    <small>Project: <b>financial dashboard</b> • Project ID: <b>financial-dashboard-3d5dc</b></small>
   </footer>
 </main>
 
-<!-- Firebase SDK (Compat for simplicity) -->
+<!-- Firebase SDK (Compat) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
@@ -177,67 +155,65 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <script>
-/** ---------- Firebase Init ---------- **/
+/* ------------ Firebase Init ------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo",
   authDomain: "financial-dashboard-3d5dc.firebaseapp.com",
   projectId: "financial-dashboard-3d5dc",
-  // storageBucket, appId, messagingSenderId ไม่จำเป็นสำหรับ Auth/Firestore
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/** ---------- UI Refs ---------- **/
-const btnSignIn = document.getElementById('btnSignIn');
-const btnSignOut = document.getElementById('btnSignOut');
-const userBadge = document.getElementById('userBadge');
+/* ------------ Refs & State ------------- */
+const $ = (id)=>document.getElementById(id);
 
-const controls = document.getElementById('controls');
-const formWrap = document.getElementById('formWrap');
-const chartWrap = document.getElementById('chartWrap');
-const tableWrap = document.getElementById('tableWrap');
-const kpis = document.getElementById('kpis');
+const btnSignIn = $('btnSignIn');
+const btnSignOut = $('btnSignOut');
+const userBadge = $('userBadge');
 
-const companyName = document.getElementById('companyName');
-const monthPicker = document.getElementById('monthPicker');
-const btnApply = document.getElementById('btnApply');
+const controls = $('controls');
+const formWrap = $('formWrap');
+const chartWrap = $('chartWrap');
+const tableWrap = $('tableWrap');
+const kpis = $('kpis');
 
-const kpiIncome = document.getElementById('kpiIncome');
-const kpiExpense = document.getElementById('kpiExpense');
-const kpiNet = document.getElementById('kpiNet');
-const periodLabel = document.getElementById('periodLabel');
+const companyName = $('companyName');
+const monthPicker = $('monthPicker');
+const btnApply = $('btnApply');
 
-const txForm = document.getElementById('txForm');
-const txDate = document.getElementById('txDate');
-const txType = document.getElementById('txType');
-const txCategory = document.getElementById('txCategory');
-const txAmount = document.getElementById('txAmount');
-const txNote = document.getElementById('txNote');
-const txMsg = document.getElementById('txMsg');
+const kpiIncome = $('kpiIncome');
+const kpiExpense = $('kpiExpense');
+const kpiNet = $('kpiNet');
+const periodLabel = $('periodLabel');
 
-const txBody = document.getElementById('txBody');
-const countLabel = document.getElementById('countLabel');
-const searchBox = document.getElementById('searchBox');
+const txForm = $('txForm');
+const txDate = $('txDate');
+const txType = $('txType');
+const txCategory = $('txCategory');
+const txAmount = $('txAmount');
+const txNote = $('txNote');
+const txMsg = $('txMsg');
 
-const btnExportCSV = document.getElementById('btnExportCSV');
-const btnExportPDF = document.getElementById('btnExportPDF');
-const btnPrint = document.getElementById('btnPrint');
+const txBody = $('txBody');
+const countLabel = $('countLabel');
+const searchBox = $('searchBox');
 
-/** ---------- State ---------- **/
+const btnExportCSV = $('btnExportCSV');
+const btnExportPDF = $('btnExportPDF');
+const btnPrint = $('btnPrint');
+
 let currentUser = null;
 let unsubscribe = null;
-let txCache = [];           // รายการที่แสดงในตาราง
+let txCache = [];
 let chart = null;
 
-/** ---------- Helpers ---------- **/
+/* ------------ Helpers ------------- */
 const pad2 = (n)=> String(n).padStart(2,'0');
-const fmtBaht = (n)=> '฿' + (Number(n || 0)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtBaht = (n)=> '฿' + (Number(n||0)).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const toLocalDateTimeInput = (d)=> {
   const dt = new Date(d);
-  const y = dt.getFullYear(), m=pad2(dt.getMonth()+1), da=pad2(dt.getDate());
-  const h=pad2(dt.getHours()), mi=pad2(dt.getMinutes());
-  return `${y}-${m}-${da}T${h}:${mi}`;
+  return `${dt.getFullYear()}-${pad2(dt.getMonth()+1)}-${pad2(dt.getDate())}T${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`;
 };
 const monthRange = (yyyyMM)=>{
   const [y,m] = yyyyMM.split('-').map(Number);
@@ -249,63 +225,50 @@ const sanitizeId = s => (s || 'default').toLowerCase().replace(/[^a-z0-9]+/g,'-'
 
 function getTxCollectionRef(){
   const comp = sanitizeId(companyName.value);
-  return db
-    .collection('users').doc(currentUser.uid)
-    .collection('companies').doc(comp)
-    .collection('transactions');
+  return db.collection('users').doc(currentUser.uid)
+           .collection('companies').doc(comp)
+           .collection('transactions');
 }
-
-function setSectionVisibility(isAuthed){
-  const show = (el, v)=> el.classList.toggle('hidden', !v);
-  show(controls, isAuthed);
-  show(formWrap, isAuthed);
-  show(chartWrap, isAuthed);
-  show(tableWrap, isAuthed);
-  show(kpis, isAuthed);
-  btnSignIn.classList.toggle('hidden', isAuthed);
-  btnSignOut.classList.toggle('hidden', !isAuthed);
-  userBadge.classList.toggle('hidden', !isAuthed);
+function showAuthed(v){
+  [controls, formWrap, chartWrap, tableWrap, kpis].forEach(el=>el.classList.toggle('hidden', !v));
+  btnSignIn.classList.toggle('hidden', v);
+  btnSignOut.classList.toggle('hidden', !v);
+  userBadge.classList.toggle('hidden', !v);
 }
-
 function saveLocal(){
   localStorage.setItem('companyName', companyName.value.trim());
   localStorage.setItem('monthPicker', monthPicker.value);
 }
-
 function loadLocal(){
   companyName.value = localStorage.getItem('companyName') || '';
   monthPicker.value = localStorage.getItem('monthPicker') || new Date().toISOString().slice(0,7);
 }
 
-/** ---------- Auth ---------- **/
+/* ------------ Auth ------------- */
 btnSignIn.addEventListener('click', async ()=>{
   const provider = new firebase.auth.GoogleAuthProvider();
   await auth.signInWithPopup(provider);
 });
-
 btnSignOut.addEventListener('click', async ()=>{
   if(unsubscribe){ unsubscribe(); unsubscribe=null; }
   await auth.signOut();
 });
-
 auth.onAuthStateChanged(user=>{
   currentUser = user || null;
   if(user){
-    userBadge.textContent = `${user.displayName || user.email}`;
-    setSectionVisibility(true);
+    userBadge.textContent = user.displayName || user.email;
+    showAuthed(true);
     loadLocal();
-    // default tx datetime = now
     txDate.value = toLocalDateTimeInput(new Date());
-    applyAndListen(); // โหลดข้อมูลทันที
-  } else {
-    setSectionVisibility(false);
+    applyAndListen();
+  }else{
+    showAuthed(false);
   }
 });
 
-/** ---------- Load & listen ---------- **/
+/* ------------ Load & listen ------------- */
 btnApply.addEventListener('click', applyAndListen);
-
-async function applyAndListen(){
+function applyAndListen(){
   if(!currentUser) return;
   saveLocal();
   if(unsubscribe){ unsubscribe(); unsubscribe=null; }
@@ -313,25 +276,15 @@ async function applyAndListen(){
   const {start, end} = monthRange(monthPicker.value);
   periodLabel.textContent = `ช่วง ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}`;
 
-  const col = getTxCollectionRef();
-  // query เฉพาะเดือนนี้
-  unsubscribe = col.where('date', '>=', start).where('date','<', end).orderBy('date','asc')
+  unsubscribe = getTxCollectionRef()
+    .where('date','>=',start).where('date','<',end).orderBy('date','asc')
     .onSnapshot(snap=>{
-      txCache = [];
-      snap.forEach(doc=>{
-        const d = doc.data();
-        txCache.push({ id: doc.id, ...d });
-      });
-      renderTable();
-      renderKPIs();
-      renderChart();
-    }, (err)=>{
-      console.error(err);
-      alert('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message);
-    });
+      txCache = snap.docs.map(doc=>({id:doc.id, ...doc.data()}));
+      renderTable(); renderKPIs(); renderChart();
+    }, err=> alert('โหลดข้อมูลผิดพลาด: '+err.message));
 }
 
-/** ---------- Add transaction ---------- **/
+/* ------------ Add transaction ------------- */
 txForm.addEventListener('submit', async (e)=>{
   e.preventDefault();
   if(!currentUser) return;
@@ -352,117 +305,87 @@ txForm.addEventListener('submit', async (e)=>{
   try{
     await getTxCollectionRef().add(data);
     txMsg.textContent = 'บันทึกแล้ว ✓';
-    txAmount.value = '';
-    txNote.value = '';
+    txAmount.value = ''; txNote.value = '';
     txDate.value = toLocalDateTimeInput(new Date());
     setTimeout(()=> txMsg.textContent='', 1200);
   }catch(err){
-    console.error(err);
     txMsg.textContent = 'ผิดพลาด: ' + err.message;
   }
 });
 
-/** ---------- Render table ---------- **/
+/* ------------ Table ------------- */
 searchBox.addEventListener('input', renderTable);
-
 function renderTable(){
-  const q = (searchBox.value || '').toLowerCase();
+  const q = (searchBox.value||'').toLowerCase();
   const rows = txCache.filter(r=>{
     if(!q) return true;
     return (r.category||'').toLowerCase().includes(q) || (r.note||'').toLowerCase().includes(q);
   });
-
   countLabel.textContent = `${rows.length} รายการ`;
   txBody.innerHTML = rows.map(r=>{
     const d = new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
     const dateStr = d.toLocaleDateString('th-TH');
-    const timeStr = d.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
-    const signCls = r.type === 'income' ? 'positive' : 'negative';
-    const amountStr = (r.type === 'expense' ? '-' : '') + fmtBaht(r.amount);
-    return `
-      <tr>
-        <td>${dateStr}</td>
-        <td>${timeStr}</td>
-        <td>${r.type === 'income' ? 'รายรับ' : 'รายจ่าย'}</td>
-        <td>${r.category}</td>
-        <td style="text-align:right" class="mono ${signCls}">${amountStr}</td>
-        <td>${r.note||''}</td>
-        <td style="text-align:right">
-          <button class="secondary outline" data-del="${r.id}" title="ลบ">ลบ</button>
-        </td>
-      </tr>
-    `;
+    const timeStr = d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    const signCls = r.type==='income' ? 'positive':'negative';
+    const amount = (r.type==='expense' ? '-' : '') + fmtBaht(r.amount);
+    return `<tr>
+      <td>${dateStr}</td>
+      <td>${timeStr}</td>
+      <td>${r.type==='income'?'รายรับ':'รายจ่าย'}</td>
+      <td>${r.category}</td>
+      <td style="text-align:right" class="mono ${signCls}">${amount}</td>
+      <td>${r.note||''}</td>
+      <td style="text-align:right"><button class="secondary outline" data-del="${r.id}">ลบ</button></td>
+    </tr>`;
   }).join('');
-
-  // bind delete
   [...document.querySelectorAll('[data-del]')].forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       if(!confirm('ต้องการลบรายการนี้?')) return;
-      try{
-        await getTxCollectionRef().doc(btn.dataset.del).delete();
-      }catch(err){
-        alert('ลบไม่ได้: ' + err.message);
-      }
+      try{ await getTxCollectionRef().doc(btn.dataset.del).delete(); }
+      catch(err){ alert('ลบไม่ได้: '+err.message); }
     });
   });
 }
 
-/** ---------- KPIs ---------- **/
+/* ------------ KPIs ------------- */
 function renderKPIs(){
-  const income = txCache.filter(r=> r.type==='income').reduce((s,r)=> s + Number(r.amount||0), 0);
-  const expense = txCache.filter(r=> r.type==='expense').reduce((s,r)=> s + Number(r.amount||0), 0);
-  const net = income - expense;
+  const income = txCache.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount||0),0);
+  const expense= txCache.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
+  const net = income-expense;
   kpiIncome.textContent = fmtBaht(income);
   kpiExpense.textContent = fmtBaht(expense);
-  kpiNet.textContent = (net>=0? '' : '-') + fmtBaht(Math.abs(net));
+  kpiNet.textContent = (net>=0?'':'-') + fmtBaht(Math.abs(net));
 }
 
-/** ---------- Chart ---------- **/
+/* ------------ Chart ------------- */
 function renderChart(){
-  const yyyyMM = monthPicker.value;
-  const {start, end} = monthRange(yyyyMM);
-  const daysInMonth = new Date(start.getFullYear(), start.getMonth()+1, 0).getDate();
-  const labels = [...Array(daysInMonth)].map((_,i)=> String(i+1));
-
-  const incomeDaily = Array(daysInMonth).fill(0);
-  const expenseDaily = Array(daysInMonth).fill(0);
-
+  const {start} = monthRange(monthPicker.value);
+  const days = new Date(start.getFullYear(), start.getMonth()+1, 0).getDate();
+  const labels = [...Array(days)].map((_,i)=> String(i+1));
+  const incomeDaily = Array(days).fill(0);
+  const expenseDaily= Array(days).fill(0);
   txCache.forEach(r=>{
     const d = new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
-    const idx = d.getDate()-1;
-    if(r.type==='income') incomeDaily[idx] += Number(r.amount||0);
-    else expenseDaily[idx] += Number(r.amount||0);
+    const i = d.getDate()-1;
+    if(r.type==='income') incomeDaily[i]+=Number(r.amount||0);
+    else expenseDaily[i]+=Number(r.amount||0);
   });
-
   const ctx = document.getElementById('dailyChart');
   if(chart) chart.destroy();
   chart = new Chart(ctx, {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        { label: 'รายรับ', data: incomeDaily },
-        { label: 'รายจ่าย', data: expenseDaily }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'top' } },
-      scales: {
-        x: { stacked:false },
-        y: { beginAtZero: true }
-      }
-    }
+    data: { labels, datasets: [
+      {label:'รายรับ', data:incomeDaily},
+      {label:'รายจ่าย', data:expenseDaily}
+    ]},
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top'}}, scales:{y:{beginAtZero:true}} }
   });
 }
 
-/** ---------- Export ---------- **/
+/* ------------ Export ------------- */
 function toCSV(){
   const {start, end} = monthRange(monthPicker.value);
-  const header = [
-    'Company','PeriodStart','PeriodEnd','Date','Time','Type','Category','Amount','Note','CreatedBy'
-  ];
+  const header = ['Company','PeriodStart','PeriodEnd','Date','Time','Type','Category','Amount','Note','CreatedBy'];
   const lines = [header.join(',')];
   txCache.forEach(r=>{
     const d = new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
@@ -470,11 +393,8 @@ function toCSV(){
     const time = [pad2(d.getHours()), pad2(d.getMinutes())].join(':');
     const row = [
       `"${(companyName.value||'').replace(/"/g,'""')}"`,
-      start.toISOString(),
-      end.toISOString(),
-      date,
-      time,
-      r.type,
+      start.toISOString(), end.toISOString(),
+      date, time, r.type,
       `"${(r.category||'').replace(/"/g,'""')}"`,
       Number(r.amount||0),
       `"${(r.note||'').replace(/"/g,'""')}"`,
@@ -484,7 +404,6 @@ function toCSV(){
   });
   return lines.join('\n');
 }
-
 function download(filename, text, type='text/plain'){
   const blob = new Blob([text], {type});
   const url = URL.createObjectURL(blob);
@@ -492,18 +411,12 @@ function download(filename, text, type='text/plain'){
   a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
-
 btnExportCSV.addEventListener('click', ()=>{
   const file = `export_${sanitizeId(companyName.value)}_${monthPicker.value}.csv`;
   download(file, toCSV(), 'text/csv;charset=utf-8');
 });
-
-btnExportPDF.addEventListener('click', ()=>{
-  openPrintable(true);
-});
-btnPrint.addEventListener('click', ()=>{
-  openPrintable(false);
-});
+btnExportPDF.addEventListener('click', ()=> openPrintable(true));
+btnPrint.addEventListener('click', ()=> openPrintable(false));
 
 function openPrintable(saveAsPDF){
   const {start, end} = monthRange(monthPicker.value);
@@ -514,27 +427,25 @@ function openPrintable(saveAsPDF){
   const rows = txCache.map(r=>{
     const d = new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
     const date = d.toLocaleDateString('th-TH');
-    const time = d.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+    const time = d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
     const sign = r.type==='expense' ? '-' : '';
-    return `
-      <tr>
-        <td>${date}</td><td>${time}</td><td>${r.type==='income'?'รายรับ':'รายจ่าย'}</td>
-        <td>${r.category}</td><td style="text-align:right">${sign}${fmtBaht(r.amount)}</td><td>${r.note||''}</td>
-      </tr>`;
+    return `<tr>
+      <td>${date}</td><td>${time}</td><td>${r.type==='income'?'รายรับ':'รายจ่าย'}</td>
+      <td>${r.category}</td><td style="text-align:right">${sign}${fmtBaht(r.amount)}</td><td>${r.note||''}</td>
+    </tr>`;
   }).join('');
 
-  const html = `
-<!DOCTYPE html><html lang="th"><head>
+  const html = `<!DOCTYPE html><html lang="th"><head>
 <meta charset="utf-8"><title>Report</title>
 <style>
-  body{ font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif; padding:24px;}
-  h1,h2,h3{ margin:0 0 4px 0;}
-  .muted{ color:#666; font-size:12px;}
-  table{ width:100%; border-collapse: collapse; margin-top:16px; }
-  th,td{ border:1px solid #ddd; padding:6px 8px; font-size:13px;}
-  th{ background:#f6f6f6; text-align:left;}
-  tfoot td{ font-weight:700; }
-  .right{ text-align:right;}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;padding:24px}
+h1,h2,h3{margin:0 0 4px 0}
+.muted{color:#666;font-size:12px}
+table{width:100%;border-collapse:collapse;margin-top:16px}
+th,td{border:1px solid #ddd;padding:6px 8px;font-size:13px}
+th{background:#f6f6f6;text-align:left}
+tfoot td{font-weight:700}
+.right{text-align:right}
 </style>
 </head><body>
   <h2>สรุปรายรับ-รายจ่าย</h2>
@@ -553,16 +464,17 @@ function openPrintable(saveAsPDF){
       <tr><td colspan="4" class="right">สุทธิ</td><td class="right">${net<0?'-':''}${fmtBaht(Math.abs(net))}</td><td></td></tr>
     </tfoot>
   </table>
-  <script>window.addEventListener('load',()=>{ ${saveAsPDF ? 'window.print();' : ''} });</script>
+  <script>
+    window.addEventListener('load', ()=>{ ${saveAsPDF ? 'window.print();' : ''} });
+  <\/script>
 </body></html>`;
 
-  const w = window.open('', '_blank', 'width=900,height=700');
+  const w = window.open("", "_blank", "width=900,height=700");
   w.document.open(); w.document.write(html); w.document.close();
 }
 
-/** ---------- Boot ---------- **/
+/* ------------ Boot ------------- */
 document.addEventListener('DOMContentLoaded', ()=>{
-  // ตั้งค่าเริ่มต้น
   loadLocal();
 });
 </script>
