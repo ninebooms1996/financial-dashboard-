@@ -4,141 +4,73 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Financial Dashboard — Company Bookkeeping</title>
-  <!-- Minimal modern UI (no build) -->
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.0.6/css/pico.min.css">
   <style>
-    :root{
-      --brand-1: #0ea5e9; /* sky-500 */
-      --brand-2: #6366f1; /* indigo-500 */
-    }
-    body{ background: #0b1020; }
-    .app-shell{ max-width: 1100px; }
+    :root{ --glass: rgba(255,255,255,.08); }
+    body{ background:#0b1020; }
     .hidden{ display:none!important }
     .badge{ padding:.25rem .5rem;border-radius:999px;background:rgba(255,255,255,.1);font-size:.75rem }
-    .table-wrap{ overflow:auto; max-height:50vh }
-    .mono{ font-variant-numeric:tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace }
-    .positive{ color:#16a34a; font-weight:600 }
-    .negative{ color:#dc2626; font-weight:600 }
+    .mono{ font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace }
+    .positive{ color:#16a34a;font-weight:600 } .negative{ color:#dc2626;font-weight:600 }
     .pill{ border:1px solid var(--pico-muted-border-color); border-radius:999px; padding:.4rem .75rem }
-    .toolbar{ gap:.5rem; display:flex; flex-wrap:wrap; align-items:center }
+    .table-wrap{ overflow:auto; max-height:50vh }
 
-    /* ===== Login (Company Portal) ===== */
-    .login-hero{
-      min-height: 100dvh;
-      display:grid;
-      grid-template-columns: 1fr;
+    /* ===== Login center ===== */
+    .login-screen{
+      min-height:100dvh; display:grid; place-items:center;
       background:
-        radial-gradient(60% 60% at 10% 10%, rgba(99,102,241,.25), transparent 60%),
-        radial-gradient(60% 60% at 90% 10%, rgba(14,165,233,.20), transparent 60%),
-        radial-gradient(60% 60% at 50% 90%, rgba(14,165,233,.12), transparent 60%),
+        radial-gradient(50% 50% at 15% 15%, rgba(99,102,241,.18), transparent 60%),
+        radial-gradient(50% 50% at 85% 15%, rgba(14,165,233,.16), transparent 60%),
+        radial-gradient(50% 50% at 50% 85%, rgba(14,165,233,.10), transparent 60%),
         #0b1020;
-      color:#e5e7eb;
-    }
-    @media(min-width: 992px){
-      .login-hero{ grid-template-columns: 1.2fr .8fr; }
-    }
-    .brand-pane{
-      padding: min(8vw, 80px);
-      display:flex; flex-direction:column; justify-content:center;
-    }
-    .brand-mark{
-      display:flex; align-items:center; gap:.75rem; margin-bottom:1rem;
-    }
-    .brand-logo{
-      width:48px;height:48px;border-radius:14px;
-      background:linear-gradient(135deg, var(--brand-1), var(--brand-2));
-      box-shadow:0 10px 30px rgba(14,165,233,.25), inset 0 0 30px rgba(255,255,255,.15);
-    }
-    .brand-title{ font-weight:700; letter-spacing:.2px; }
-    .brand-tag{ color:#a5b4fc; }
-    .showcase{
-      margin-top:1.25rem; display:grid; gap:.5rem; grid-template-columns:repeat(3, minmax(0,1fr));
-    }
-    .chip{
-      padding:.5rem .75rem; border-radius:999px; backdrop-filter: blur(6px);
-      background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10);
-      text-align:center; font-size:.85rem; color:#dbeafe;
+      padding:24px;
     }
     .login-card{
-      padding:min(5vw, 56px); display:flex; align-items:center; justify-content:center;
+      width:100%; max-width:440px; padding:28px 24px; border-radius:18px;
+      background:rgba(15,23,42,.9); border:1px solid var(--glass);
+      box-shadow:0 20px 40px rgba(2,6,23,.6); color:#e5e7eb; text-align:center;
     }
-    .card{
-      width:100%; max-width: 460px; padding:28px 24px; border-radius:18px;
-      background:rgba(15,23,42,.8); border:1px solid rgba(255,255,255,.10);
-      box-shadow: 0 20px 40px rgba(2,6,23,.6);
-      color:#e5e7eb;
+    .brand-logo{
+      width:56px;height:56px;border-radius:16px; margin:0 auto 10px auto;
+      background:linear-gradient(135deg,#0ea5e9,#6366f1);
+      box-shadow:0 10px 30px rgba(14,165,233,.28), inset 0 0 30px rgba(255,255,255,.15);
     }
-    .card h2{ margin:0 0 .25rem 0 }
-    .muted{ color:#94a3b8; font-size:.95rem }
+    .muted{ color:#94a3b8 }
     .btn-google{
       width:100%; display:flex; gap:.6rem; align-items:center; justify-content:center;
       background:#111827; color:#e5e7eb; border:1px solid rgba(255,255,255,.1);
     }
     .btn-google:hover{ background:#0b1324; }
-    .gmark{ width:18px;height:18px; border-radius:4px; background: conic-gradient(from 0deg, #4285F4 0 25%, #34A853 25% 50%, #FBBC05 50% 75%, #EA4335 75% 100%); }
-    .links{ display:flex; justify-content:space-between; gap:.75rem; margin-top:.75rem }
-    .links a{ color:#a5b4fc; text-decoration:none }
-    .links a:hover{ text-decoration:underline }
+    .gmark{ width:18px;height:18px;border-radius:4px;background:conic-gradient(from 0deg,#4285F4 0 25%,#34A853 25% 50%,#FBBC05 50% 75%,#EA4335 75% 100%) }
+    .links{ display:flex; justify-content:space-between; margin-top:.75rem }
+    .links a{ color:#a5b4fc; text-decoration:none } .links a:hover{ text-decoration:underline }
 
-    /* ===== Dashboard ===== */
-    .dash-header{ align-items:center }
-    .app-surface{
-      background:#0f172a; color:#e5e7eb; border:1px solid rgba(255,255,255,.08);
-      border-radius:16px; padding:16px 18px;
-    }
-    .card-inset{
-      background:#0b1324; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:12px 14px;
-    }
-    table{ color:#e5e7eb }
-    th{ background:#0b1324 }
+    /* ===== Dashboard look ===== */
+    .app-shell{ max-width:1100px }
+    .app-surface{ background:#0f172a; color:#e5e7eb; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px 18px }
+    .card-inset{ background:#0b1324; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:12px 14px }
+    table{ color:#e5e7eb } th{ background:#0b1324 }
   </style>
 </head>
 <body>
 
-<!-- ======================= LOGIN (COMPANY PORTAL) ======================= -->
-<section id="loginSection" class="login-hero">
-  <div class="brand-pane">
-    <div class="brand-mark">
-      <div class="brand-logo"></div>
-      <div>
-        <div class="brand-title">NineBooms Technologies</div>
-        <small class="brand-tag">Secure Finance Portal</small>
-      </div>
+<!-- ======================= LOGIN CENTER ======================= -->
+<section id="loginSection" class="login-screen">
+  <article class="login-card">
+    <div class="brand-logo"></div>
+    <h2 style="margin:.25rem 0 0 0">บริษัทของคุณ</h2>
+    <p class="muted" style="margin:.25rem 0 1rem 0">Secure Finance Portal</p>
+    <button id="btnSignIn" class="btn-google"><span class="gmark"></span> เข้าสู่ระบบด้วย Google</button>
+    <div class="links">
+      <a href="#" onclick="alert('ตัวอย่าง Terms');return false;">Terms</a>
+      <a href="#" onclick="alert('ตัวอย่าง Privacy');return false;">Privacy</a>
     </div>
-    <h1 style="margin:.25rem 0 0 0; color:#e2e8f0">บริหารการเงินระดับองค์กร</h1>
-    <p class="muted" style="max-width:60ch">
-      จัดทำสมุดรายรับ-รายจ่าย, กราฟสรุปรายวัน, และเอกสาร Export สำหรับยื่นบัญชี <br>
-      เชื่อมต่อด้วย Google และบันทึกแบบเรียลไทม์บน Firebase
-    </p>
-    <div class="showcase">
-      <div class="chip">Realtime Firestore</div>
-      <div class="chip">Export CSV / PDF</div>
-      <div class="chip">Monthly Filter</div>
-    </div>
-  </div>
-
-  <div class="login-card">
-    <article class="card">
-      <h2>เข้าสู่ระบบ</h2>
-      <p class="muted">ล็อกอินด้วยบัญชีบริษัทเพื่อเข้าถึงแดชบอร์ด</p>
-      <button id="btnSignIn" class="btn-google">
-        <span class="gmark"></span> เข้าสู่ระบบด้วย Google
-      </button>
-      <label style="margin-top:.9rem">
-        ชื่อบริษัท (แสดงในรายงานและใช้เป็นแฟ้มข้อมูล)
-        <input id="preCompany" type="text" placeholder="เช่น บริษัท เอ บี ซี จำกัด">
-      </label>
-      <div class="links">
-        <a href="#" onclick="alert('ตัวอย่าง Terms');return false;">Terms</a>
-        <a href="#" onclick="alert('ตัวอย่าง Privacy Policy');return false;">Privacy</a>
-      </div>
-    </article>
-  </div>
+  </article>
 </section>
 
 <!-- ======================= DASHBOARD ======================= -->
 <main id="dashboard" class="container app-shell hidden">
-  <header class="grid dash-header">
+  <header class="grid" style="align-items:center">
     <div>
       <h1 style="margin-bottom:.25rem">Financial Dashboard</h1>
       <small class="muted">บันทึกรายรับ-รายจ่าย • Export สำหรับยื่นบัญชี • Realtime ด้วย Firebase</small>
@@ -149,14 +81,14 @@
     </div>
   </header>
 
-  <!-- Controls -->
+  <!-- Controls (ยังคงมี “ชื่อบริษัท” ในแดชบอร์ด เพื่อใช้ในรายงาน/โฟลเดอร์ข้อมูล) -->
   <section class="app-surface">
     <div class="grid">
       <div>
         <label>ชื่อบริษัท
-          <input id="companyName" type="text" placeholder="เช่น บริษัท เอ บี ซี จำกัด" required>
+          <input id="companyName" type="text" placeholder="เช่น บริษัท เอ บี ซี จำกัด">
         </label>
-        <small class="muted">จำในเครื่อง และใช้เป็นแฟ้มใน Firestore</small>
+        <small class="muted">ใช้เป็นชื่อในรายงาน และเป็นแฟ้มใน Firestore</small>
       </div>
       <div>
         <label>รอบบัญชี (เดือน)
@@ -184,10 +116,7 @@
   <!-- Chart -->
   <section>
     <article class="card-inset">
-      <header>
-        <h3 style="margin:0">กราฟรายวัน: รายรับ vs รายจ่าย</h3>
-        <small id="periodLabel" class="muted"></small>
-      </header>
+      <header><h3 style="margin:0">กราฟรายวัน: รายรับ vs รายจ่าย</h3><small id="periodLabel" class="muted"></small></header>
       <canvas id="dailyChart" height="140"></canvas>
     </article>
   </section>
@@ -211,7 +140,8 @@
           <label>จำนวนเงิน (บาท) <input id="txAmount" type="number" step="0.01" min="0" required></label>
         </div>
         <label>หมายเหตุ <input id="txNote" type="text" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"></label>
-        <div class="toolbar"><button type="submit" class="primary">บันทึก</button><span id="txMsg"></span></div>
+        <div class="pill" id="txMsg" style="display:inline-block"></div>
+        <button type="submit" class="primary" style="margin-top:.5rem">บันทึก</button>
       </form>
     </article>
   </section>
@@ -239,193 +169,105 @@
   </footer>
 </main>
 
-<!-- Firebase SDK (Compat) -->
+<!-- Firebase & Chart.js -->
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <script>
-/* ------------ Firebase Init ------------- */
-const firebaseConfig = {
-  apiKey: "AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo",
-  authDomain: "financial-dashboard-3d5dc.firebaseapp.com",
-  projectId: "financial-dashboard-3d5dc",
-};
+/* -------- Firebase -------- */
+const firebaseConfig={ apiKey:"AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo", authDomain:"financial-dashboard-3d5dc.firebaseapp.com", projectId:"financial-dashboard-3d5dc" };
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const auth=firebase.auth(); const db=firebase.firestore();
 
-/* ------------ Refs ------------- */
-const $  = (id)=> document.getElementById(id);
-const loginSection = $('loginSection');
-const dashboard    = $('dashboard');
-const preCompany   = $('preCompany');
+/* -------- Refs -------- */
+const $=id=>document.getElementById(id);
+const loginSection=$('loginSection'), dashboard=$('dashboard');
+const btnSignIn=$('btnSignIn'), btnSignOut=$('btnSignOut'), userBadge=$('userBadge');
+const companyName=$('companyName'), monthPicker=$('monthPicker'), btnApply=$('btnApply');
+const kpiIncome=$('kpiIncome'), kpiExpense=$('kpiExpense'), kpiNet=$('kpiNet'), periodLabel=$('periodLabel');
+const txForm=$('txForm'), txDate=$('txDate'), txType=$('txType'), txCategory=$('txCategory'), txAmount=$('txAmount'), txNote=$('txNote'), txMsg=$('txMsg');
+const txBody=$('txBody'), countLabel=$('countLabel'), searchBox=$('searchBox');
+const btnExportCSV=$('btnExportCSV'), btnExportPDF=$('btnExportPDF'), btnPrint=$('btnPrint');
 
-const userBadge = $('userBadge');
-const btnSignIn = $('btnSignIn');
-const btnSignOut= $('btnSignOut');
+/* -------- State -------- */
+let currentUser=null, unsubscribe=null, txCache=[], chart=null;
 
-const companyName = $('companyName');
-const monthPicker = $('monthPicker');
-const btnApply    = $('btnApply');
+/* -------- Utils -------- */
+const pad2=n=>String(n).padStart(2,'0');
+const fmtBaht=n=>'฿'+(Number(n||0)).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const toLocalDateTimeInput=d=>{const t=new Date(d);return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}T${pad2(t.getHours())}:${pad2(t.getMinutes())}`};
+const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);const s=new Date(y,m-1,1), e=new Date(y,m,1);return {start:s,end:e}};
+const sanitizeId=s=>(s||'default').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
 
-const kpiIncome   = $('kpiIncome');
-const kpiExpense  = $('kpiExpense');
-const kpiNet      = $('kpiNet');
-const periodLabel = $('periodLabel');
-
-const txForm = $('txForm');
-const txDate = $('txDate');
-const txType = $('txType');
-const txCategory = $('txCategory');
-const txAmount = $('txAmount');
-const txNote = $('txNote');
-const txMsg  = $('txMsg');
-
-const txBody = $('txBody');
-const countLabel = $('countLabel');
-const searchBox  = $('searchBox');
-
-const btnExportCSV = $('btnExportCSV');
-const btnExportPDF = $('btnExportPDF');
-const btnPrint     = $('btnPrint');
-
-/* ------------ State ------------- */
-let currentUser = null;
-let unsubscribe = null;
-let txCache = [];
-let chart = null;
-
-/* ------------ Helpers ------------- */
-const pad2 = (n)=> String(n).padStart(2,'0');
-const fmtBaht = (n)=> '฿' + (Number(n||0)).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
-const toLocalDateTimeInput = (d)=> {
-  const dt = new Date(d);
-  return `${dt.getFullYear()}-${pad2(dt.getMonth()+1)}-${pad2(dt.getDate())}T${pad2(dt.getHours())}:${pad2(dt.getMinutes())}`;
-};
-const monthRange = (yyyyMM)=>{
-  const [y,m] = yyyyMM.split('-').map(Number);
-  const start = new Date(y, m-1, 1, 0,0,0,0);
-  const end   = new Date(y, m,   1, 0,0,0,0);
-  return {start, end};
-};
-const sanitizeId = s => (s || 'default').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-
+/* -------- Firestore path (ยังใช้ชื่อบริษัทจากแดชบอร์ด ถ้าเว้นว่างจะเก็บที่ "default") -------- */
 function getTxCollectionRef(){
-  const comp = sanitizeId(companyName.value);
-  return db.collection('users').doc(currentUser.uid)
-           .collection('companies').doc(comp)
-           .collection('transactions');
+  const comp=sanitizeId(companyName.value);
+  return db.collection('users').doc(currentUser.uid).collection('companies').doc(comp).collection('transactions');
 }
 
-function goto(state){
-  if(state==='authed'){
-    loginSection.classList.add('hidden');
-    dashboard.classList.remove('hidden');
-  }else{
-    dashboard.classList.add('hidden');
-    loginSection.classList.remove('hidden');
-  }
-}
-
-function saveLocal(){
-  localStorage.setItem('companyName', companyName.value.trim());
-  localStorage.setItem('monthPicker', monthPicker.value);
-}
-function loadLocal(){
-  companyName.value = localStorage.getItem('companyName') || (preCompany.value || '');
-  monthPicker.value = localStorage.getItem('monthPicker') || new Date().toISOString().slice(0,7);
-}
-
-/* ------------ Auth ------------- */
-btnSignIn.addEventListener('click', async ()=>{
-  const provider = new firebase.auth.GoogleAuthProvider();
-  await auth.signInWithPopup(provider);
-});
-btnSignOut.addEventListener('click', async ()=>{
-  if(unsubscribe){ unsubscribe(); unsubscribe=null; }
-  await auth.signOut();
-});
+/* -------- Auth -------- */
+btnSignIn.addEventListener('click', async ()=>{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); });
+btnSignOut.addEventListener('click', async ()=>{ if(unsubscribe){unsubscribe();unsubscribe=null;} await auth.signOut(); });
 
 auth.onAuthStateChanged(user=>{
-  currentUser = user || null;
+  currentUser=user||null;
   if(user){
-    userBadge.textContent = user.displayName || user.email;
-    goto('authed');
-    loadLocal();
-    txDate.value = toLocalDateTimeInput(new Date());
+    userBadge.textContent=user.displayName||user.email;
+    loginSection.classList.add('hidden'); dashboard.classList.remove('hidden');
+    txDate.value=toLocalDateTimeInput(new Date());
+    monthPicker.value=localStorage.getItem('monthPicker')||new Date().toISOString().slice(0,7);
+    companyName.value=localStorage.getItem('companyName')||'';
     applyAndListen();
   }else{
-    goto('anon');
+    dashboard.classList.add('hidden'); loginSection.classList.remove('hidden');
   }
 });
 
-/* ------------ Load & listen ------------- */
+/* -------- Load & listen -------- */
 btnApply.addEventListener('click', applyAndListen);
 function applyAndListen(){
   if(!currentUser) return;
-  saveLocal();
-  if(unsubscribe){ unsubscribe(); unsubscribe=null; }
-  const {start, end} = monthRange(monthPicker.value);
-  periodLabel.textContent = `ช่วง ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}`;
-  unsubscribe = getTxCollectionRef()
-    .where('date','>=',start).where('date','<',end).orderBy('date','asc')
+  localStorage.setItem('companyName', companyName.value.trim());
+  localStorage.setItem('monthPicker', monthPicker.value);
+  if(unsubscribe){unsubscribe();unsubscribe=null;}
+  const {start,end}=monthRange(monthPicker.value);
+  periodLabel.textContent=`ช่วง ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}`;
+  unsubscribe=getTxCollectionRef().where('date','>=',start).where('date','<',end).orderBy('date','asc')
     .onSnapshot(snap=>{
-      txCache = snap.docs.map(doc=>({id:doc.id, ...doc.data()}));
+      txCache=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderTable(); renderKPIs(); renderChart();
-    }, err=> alert('โหลดข้อมูลผิดพลาด: '+err.message));
+    }, err=>alert('โหลดข้อมูลผิดพลาด: '+err.message));
 }
 
-/* ------------ Add transaction ------------- */
-txForm.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  if(!currentUser) return;
-  const dt = new Date(txDate.value);
-  const data = {
-    uid: currentUser.uid,
-    company: companyName.value.trim(),
-    type: txType.value,
-    category: txCategory.value,
-    amount: Number(txAmount.value || 0),
-    note: txNote.value.trim(),
-    date: dt,
-    createdAt: new Date(),
-    createdBy: currentUser.email || currentUser.uid
-  };
-  txMsg.textContent = '...กำลังบันทึก';
-  try{
-    await getTxCollectionRef().add(data);
-    txMsg.textContent = 'บันทึกแล้ว ✓';
-    txAmount.value = ''; txNote.value = '';
-    txDate.value = toLocalDateTimeInput(new Date());
-    setTimeout(()=> txMsg.textContent='', 1200);
-  }catch(err){
-    txMsg.textContent = 'ผิดพลาด: ' + err.message;
-  }
+/* -------- Add tx -------- */
+txForm.addEventListener('submit', async e=>{
+  e.preventDefault(); if(!currentUser) return;
+  const data={ uid:currentUser.uid, company:companyName.value.trim(), type:txType.value, category:txCategory.value,
+    amount:Number(txAmount.value||0), note:txNote.value.trim(), date:new Date(txDate.value),
+    createdAt:new Date(), createdBy:currentUser.email||currentUser.uid };
+  txMsg.textContent='...กำลังบันทึก';
+  try{ await getTxCollectionRef().add(data); txMsg.textContent='บันทึกแล้ว ✓'; txAmount.value=''; txNote.value='';
+       txDate.value=toLocalDateTimeInput(new Date()); setTimeout(()=>txMsg.textContent='',1200);}
+  catch(err){ txMsg.textContent='ผิดพลาด: '+err.message; }
 });
 
-/* ------------ Table ------------- */
-$('searchBox').addEventListener('input', renderTable);
+/* -------- Table -------- */
+searchBox.addEventListener('input', renderTable);
 function renderTable(){
-  const q = (searchBox.value||'').toLowerCase();
-  const rows = txCache.filter(r=>{
-    if(!q) return true;
-    return (r.category||'').toLowerCase().includes(q) || (r.note||'').toLowerCase().includes(q);
-  });
-  countLabel.textContent = `${rows.length} รายการ`;
-  txBody.innerHTML = rows.map(r=>{
-    const d = new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
-    const dateStr = d.toLocaleDateString('th-TH');
-    const timeStr = d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-    const signCls = r.type==='income' ? 'positive':'negative';
-    const amount = (r.type==='expense' ? '-' : '') + fmtBaht(r.amount);
+  const q=(searchBox.value||'').toLowerCase();
+  const rows=txCache.filter(r=>!q || (r.category||'').toLowerCase().includes(q) || (r.note||'').toLowerCase().includes(q));
+  countLabel.textContent=`${rows.length} รายการ`;
+  txBody.innerHTML=rows.map(r=>{
+    const d=new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
+    const amount=(r.type==='expense'?'-':'')+fmtBaht(r.amount);
     return `<tr>
-      <td>${dateStr}</td><td>${timeStr}</td>
+      <td>${d.toLocaleDateString('th-TH')}</td>
+      <td>${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</td>
       <td>${r.type==='income'?'รายรับ':'รายจ่าย'}</td>
       <td>${r.category}</td>
-      <td style="text-align:right" class="mono ${signCls}">${amount}</td>
+      <td style="text-align:right" class="mono ${r.type==='income'?'positive':'negative'}">${amount}</td>
       <td>${r.note||''}</td>
       <td style="text-align:right"><button class="secondary outline" data-del="${r.id}">ลบ</button></td>
     </tr>`;
@@ -433,144 +275,91 @@ function renderTable(){
   [...document.querySelectorAll('[data-del]')].forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       if(!confirm('ต้องการลบรายการนี้?')) return;
-      try{ await getTxCollectionRef().doc(btn.dataset.del).delete(); }
-      catch(err){ alert('ลบไม่ได้: '+err.message); }
+      try{ await getTxCollectionRef().doc(btn.dataset.del).delete(); }catch(err){ alert('ลบไม่ได้: '+err.message); }
     });
   });
 }
 
-/* ------------ KPIs ------------- */
+/* -------- KPIs -------- */
 function renderKPIs(){
-  const income = txCache.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount||0),0);
-  const expense= txCache.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
-  const net = income-expense;
-  kpiIncome.textContent = fmtBaht(income);
-  kpiExpense.textContent = fmtBaht(expense);
-  kpiNet.textContent = (net>=0?'':'-') + fmtBaht(Math.abs(net));
+  const income=txCache.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount||0),0);
+  const expense=txCache.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
+  const net=income-expense;
+  kpiIncome.textContent=fmtBaht(income); kpiExpense.textContent=fmtBaht(expense);
+  kpiNet.textContent=(net>=0?'':'-')+fmtBaht(Math.abs(net));
 }
 
-/* ------------ Chart ------------- */
+/* -------- Chart -------- */
 function renderChart(){
-  const {start} = monthRange(monthPicker.value);
-  const days = new Date(start.getFullYear(), start.getMonth()+1, 0).getDate();
-  const labels = [...Array(days)].map((_,i)=> String(i+1));
-  const incomeDaily = Array(days).fill(0);
-  const expenseDaily= Array(days).fill(0);
+  const {start}=monthRange(monthPicker.value);
+  const days=new Date(start.getFullYear(), start.getMonth()+1, 0).getDate();
+  const labels=[...Array(days)].map((_,i)=>String(i+1));
+  const incomeDaily=Array(days).fill(0), expenseDaily=Array(days).fill(0);
   txCache.forEach(r=>{
-    const d = new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
-    const i = d.getDate()-1;
-    if(r.type==='income') incomeDaily[i]+=Number(r.amount||0);
-    else expenseDaily[i]+=Number(r.amount||0);
+    const d=new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
+    const i=d.getDate()-1;
+    if(r.type==='income') incomeDaily[i]+=Number(r.amount||0); else expenseDaily[i]+=Number(r.amount||0);
   });
-  const ctx = document.getElementById('dailyChart');
-  if(chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'bar',
-    data: { labels, datasets: [
-      {label:'รายรับ', data:incomeDaily},
-      {label:'รายจ่าย', data:expenseDaily}
-    ]},
-    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top'}}, scales:{y:{beginAtZero:true}} }
-  });
+  const ctx=document.getElementById('dailyChart'); if(window.chart) chart.destroy();
+  chart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'รายรับ',data:incomeDaily},{label:'รายจ่าย',data:expenseDaily}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
 }
 
-/* ------------ Export ------------- */
+/* -------- Export -------- */
 function toCSV(){
-  const {start, end} = monthRange(monthPicker.value);
-  const header = ['Company','PeriodStart','PeriodEnd','Date','Time','Type','Category','Amount','Note','CreatedBy'];
-  const lines = [header.join(',')];
+  const {start,end}=monthRange(monthPicker.value);
+  const header=['Company','PeriodStart','PeriodEnd','Date','Time','Type','Category','Amount','Note','CreatedBy'];
+  const lines=[header.join(',')];
   txCache.forEach(r=>{
-    const d = new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
-    const date = [d.getFullYear(), pad2(d.getMonth()+1), pad2(d.getDate())].join('-');
-    const time = [pad2(d.getHours()), pad2(d.getMinutes())].join(':');
-    const row = [
+    const d=new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
+    const date=[d.getFullYear(),pad2(d.getMonth()+1),pad2(d.getDate())].join('-');
+    const time=[pad2(d.getHours()),pad2(d.getMinutes())].join(':');
+    lines.push([
       `"${(companyName.value||'').replace(/"/g,'""')}"`,
-      start.toISOString(), end.toISOString(),
-      date, time, r.type,
+      start.toISOString(), end.toISOString(), date, time, r.type,
       `"${(r.category||'').replace(/"/g,'""')}"`,
-      Number(r.amount||0),
-      `"${(r.note||'').replace(/"/g,'""')}"`,
-      `"${(r.createdBy||'').replace(/"/g,'""')}"`
-    ];
-    lines.push(row.join(','));
-  });
-  return lines.join('\n');
+      Number(r.amount||0), `"${(r.note||'').replace(/"/g,'""')}"`, `"${(r.createdBy||'').replace(/"/g,'""')}"`
+    ].join(','));
+  }); return lines.join('\n');
 }
-function download(filename, text, type='text/plain'){
-  const blob = new Blob([text], {type});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-}
-btnExportCSV.addEventListener('click', ()=>{
-  const file = `export_${sanitizeId(companyName.value)}_${monthPicker.value}.csv`;
-  download(file, toCSV(), 'text/csv;charset=utf-8');
-});
+function download(filename,text,type='text/plain'){ const blob=new Blob([text],{type}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url); }
+btnExportCSV.addEventListener('click', ()=> download(`export_${sanitizeId(companyName.value)}_${monthPicker.value}.csv`, toCSV(), 'text/csv;charset=utf-8'));
 btnExportPDF.addEventListener('click', ()=> openPrintable(true));
 btnPrint.addEventListener('click', ()=> openPrintable(false));
 
 function openPrintable(saveAsPDF){
-  const {start, end} = monthRange(monthPicker.value);
-  const income = txCache.filter(r=> r.type==='income').reduce((s,r)=> s + Number(r.amount||0), 0);
-  const expense = txCache.filter(r=> r.type==='expense').reduce((s,r)=> s + Number(r.amount||0), 0);
-  const net = income - expense;
-
-  const rows = txCache.map(r=>{
-    const d = new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
-    const date = d.toLocaleDateString('th-TH');
-    const time = d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-    const sign = r.type==='expense' ? '-' : '';
+  const {start,end}=monthRange(monthPicker.value);
+  const income=txCache.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount||0),0);
+  const expense=txCache.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
+  const net=income-expense;
+  const rows=txCache.map(r=>{
+    const d=new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
+    const sign=r.type==='expense'?'-':'';
     return `<tr>
-      <td>${date}</td><td>${time}</td><td>${r.type==='income'?'รายรับ':'รายจ่าย'}</td>
-      <td>${r.category}</td><td style="text-align:right">${sign}${fmtBaht(r.amount)}</td><td>${r.note||''}</td>
+      <td>${d.toLocaleDateString('th-TH')}</td>
+      <td>${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td>${r.type==='income'?'รายรับ':'รายจ่าย'}</td>
+      <td>${r.category}</td>
+      <td style="text-align:right">${sign}${fmtBaht(r.amount)}</td>
+      <td>${r.note||''}</td>
     </tr>`;
   }).join('');
-
-  const html = `<!DOCTYPE html><html lang="th"><head>
-<meta charset="utf-8"><title>Report</title>
-<style>
-body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;padding:24px}
-h1,h2,h3{margin:0 0 4px 0}
-.muted{color:#666;font-size:12px}
-table{width:100%;border-collapse:collapse;margin-top:16px}
-th,td{border:1px solid #ddd;padding:6px 8px;font-size:13px}
-th{background:#f6f6f6;text-align:left}
-tfoot td{font-weight:700}
-.right{text-align:right}
-</style>
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>Report</title>
+<style>body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;padding:24px}
+table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:6px 8px;font-size:13px}th{background:#f6f6f6}</style>
 </head><body>
-  <h2>สรุปรายรับ-รายจ่าย</h2>
-  <div class="muted">
-    บริษัท: <b>${companyName.value || '-'}</b><br>
-    ผู้พิมพ์: ${currentUser ? (currentUser.displayName || currentUser.email) : '-'}<br>
-    รอบบัญชี: ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}
-  </div>
-
-  <table>
-    <thead><tr><th>วันที่</th><th>เวลา</th><th>ประเภท</th><th>หมวด</th><th class="right">จำนวนเงิน</th><th>หมายเหตุ</th></tr></thead>
-    <tbody>${rows || `<tr><td colspan="6">ไม่มีข้อมูล</td></tr>`}</tbody>
-    <tfoot>
-      <tr><td colspan="4" class="right">รวมรายรับ</td><td class="right">${fmtBaht(income)}</td><td></td></tr>
-      <tr><td colspan="4" class="right">รวมรายจ่าย</td><td class="right">-${fmtBaht(expense)}</td><td></td></tr>
-      <tr><td colspan="4" class="right">สุทธิ</td><td class="right">${net<0?'-':''}${fmtBaht(Math.abs(net))}</td><td></td></tr>
-    </tfoot>
-  </table>
-  <script>
-    window.addEventListener('load', ()=>{ ${saveAsPDF ? 'window.print();' : ''} });
-  <\/script>
+<h2>สรุปรายรับ-รายจ่าย</h2>
+<div>บริษัท: <b>${companyName.value||'-'}</b> • รอบบัญชี: ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}</div>
+<table><thead><tr><th>วันที่</th><th>เวลา</th><th>ประเภท</th><th>หมวด</th><th>จำนวนเงิน</th><th>หมายเหตุ</th></tr></thead>
+<tbody>${rows || '<tr><td colspan="6">ไม่มีข้อมูล</td></tr>'}</tbody>
+<tfoot>
+<tr><td colspan="4" style="text-align:right">รวมรายรับ</td><td style="text-align:right">${fmtBaht(income)}</td><td></td></tr>
+<tr><td colspan="4" style="text-align:right">รวมรายจ่าย</td><td style="text-align:right">-${fmtBaht(expense)}</td><td></td></tr>
+<tr><td colspan="4" style="text-align:right">สุทธิ</td><td style="text-align:right">${net<0?'-':''}${fmtBaht(Math.abs(net))}</td><td></td></tr>
+</tfoot></table>
+<script>window.addEventListener('load',()=>{ ${saveAsPDF ? 'window.print();' : ''} });<\/script>
 </body></html>`;
-
-  const w = window.open("", "_blank", "width=900,height=700");
-  w.document.open(); w.document.write(html); w.document.close();
+  const w=window.open("","_blank","width=900,height=700"); w.document.open(); w.document.write(html); w.document.close();
 }
-
-/* ------------ Boot ------------- */
-document.addEventListener('DOMContentLoaded', ()=>{
-  // preload preCompany into companyName after login
-  preCompany.addEventListener('input', ()=> localStorage.setItem('preCompany', preCompany.value.trim()));
-  preCompany.value = localStorage.getItem('preCompany') || '';
-});
 </script>
 </body>
 </html>
