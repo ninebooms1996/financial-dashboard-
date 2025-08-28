@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Financial Dashboard — Company Bookkeeping</title>
+  <title>บริษัท รับทรัพย์โชคทวีจำกัด — Financial Dashboard</title>
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.0.6/css/pico.min.css">
   <style>
     :root{ --glass: rgba(255,255,255,.08); }
@@ -39,9 +39,10 @@
     .btn-google{
       width:100%; display:flex; gap:.6rem; align-items:center; justify-content:center;
       background:#111827; color:#e5e7eb; border:1px solid rgba(255,255,255,.1);
+      padding:.9rem 1rem; border-radius:12px; font-weight:600; text-transform:lowercase;
     }
     .btn-google:hover{ background:#0b1324; }
-    .gmark{ width:18px;height:18px;border-radius:4px;background:conic-gradient(from 0deg,#4285F4 0 25%,#34A853 25% 50%,#FBBC05 50% 75%,#EA4335 75% 100%) }
+    .gmark{ width:18px;height:18px; }
     .links{ display:flex; justify-content:space-between; margin-top:.75rem }
     .links a{ color:#a5b4fc; text-decoration:none } .links a:hover{ text-decoration:underline }
 
@@ -58,9 +59,12 @@
 <section id="loginSection" class="login-screen">
   <article class="login-card">
     <div class="brand-logo"></div>
-    <h2 style="margin:.25rem 0 0 0">บริษัทของคุณ</h2>
+    <h2 style="margin:.25rem 0 0 0">บริษัท รับทรัพย์โชคทวีจำกัด</h2>
     <p class="muted" style="margin:.25rem 0 1rem 0">Secure Finance Portal</p>
-    <button id="btnSignIn" class="btn-google"><span class="gmark"></span> เข้าสู่ระบบด้วย Google</button>
+    <button id="btnSignIn" class="btn-google">
+      <img class="gmark" alt="Google" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
+      login via google
+    </button>
     <div class="links">
       <a href="#" onclick="alert('ตัวอย่าง Terms');return false;">Terms</a>
       <a href="#" onclick="alert('ตัวอย่าง Privacy');return false;">Privacy</a>
@@ -72,7 +76,7 @@
 <main id="dashboard" class="container app-shell hidden">
   <header class="grid" style="align-items:center">
     <div>
-      <h1 style="margin-bottom:.25rem">Financial Dashboard</h1>
+      <h1 style="margin-bottom:.25rem">Financial Dashboard — บริษัท รับทรัพย์โชคทวีจำกัด</h1>
       <small class="muted">บันทึกรายรับ-รายจ่าย • Export สำหรับยื่นบัญชี • Realtime ด้วย Firebase</small>
     </div>
     <div style="display:flex; gap:.5rem; justify-content:flex-end; align-items:center">
@@ -81,7 +85,7 @@
     </div>
   </header>
 
-  <!-- Controls (ยังคงมี “ชื่อบริษัท” ในแดชบอร์ด เพื่อใช้ในรายงาน/โฟลเดอร์ข้อมูล) -->
+  <!-- Controls -->
   <section class="app-surface">
     <div class="grid">
       <div>
@@ -199,9 +203,10 @@ const pad2=n=>String(n).padStart(2,'0');
 const fmtBaht=n=>'฿'+(Number(n||0)).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const toLocalDateTimeInput=d=>{const t=new Date(d);return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}T${pad2(t.getHours())}:${pad2(t.getMinutes())}`};
 const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);const s=new Date(y,m-1,1), e=new Date(y,m,1);return {start:s,end:e}};
-const sanitizeId=s=>(s||'default').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+// เก็บอักษรไทย/อังกฤษ/ตัวเลขได้ เปลี่ยนเว้นวรรคเป็นขีด และกันอักขระต้องห้ามของ path
+const sanitizeId=s=>(s||'default').trim().replace(/[\/#?\[\]]/g,'-').replace(/\s+/g,'-');
 
-/* -------- Firestore path (ยังใช้ชื่อบริษัทจากแดชบอร์ด ถ้าเว้นว่างจะเก็บที่ "default") -------- */
+/* -------- Firestore path -------- */
 function getTxCollectionRef(){
   const comp=sanitizeId(companyName.value);
   return db.collection('users').doc(currentUser.uid).collection('companies').doc(comp).collection('transactions');
@@ -216,9 +221,13 @@ auth.onAuthStateChanged(user=>{
   if(user){
     userBadge.textContent=user.displayName||user.email;
     loginSection.classList.add('hidden'); dashboard.classList.remove('hidden');
+
+    // ตั้งค่าเริ่มต้นเป็นชื่อบริษัทนี้ หากยังไม่เคยตั้ง
+    const defaultCompany = 'บริษัท รับทรัพย์โชคทวีจำกัด';
+    companyName.value = localStorage.getItem('companyName') || defaultCompany;
+    monthPicker.value = localStorage.getItem('monthPicker') || new Date().toISOString().slice(0,7);
+
     txDate.value=toLocalDateTimeInput(new Date());
-    monthPicker.value=localStorage.getItem('monthPicker')||new Date().toISOString().slice(0,7);
-    companyName.value=localStorage.getItem('companyName')||'';
     applyAndListen();
   }else{
     dashboard.classList.add('hidden'); loginSection.classList.remove('hidden');
@@ -300,7 +309,7 @@ function renderChart(){
     const i=d.getDate()-1;
     if(r.type==='income') incomeDaily[i]+=Number(r.amount||0); else expenseDaily[i]+=Number(r.amount||0);
   });
-  const ctx=document.getElementById('dailyChart'); if(window.chart) chart.destroy();
+  const ctx=document.getElementById('dailyChart'); if(chart) chart.destroy();
   chart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'รายรับ',data:incomeDaily},{label:'รายจ่าย',data:expenseDaily}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
 }
 
@@ -343,7 +352,7 @@ function openPrintable(saveAsPDF){
       <td>${r.note||''}</td>
     </tr>`;
   }).join('');
-  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>Report</title>
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>Report — บริษัท รับทรัพย์โชคทวีจำกัด</title>
 <style>body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;padding:24px}
 table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:6px 8px;font-size:13px}th{background:#f6f6f6}</style>
 </head><body>
