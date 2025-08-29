@@ -28,6 +28,7 @@
     .app-surface{ background:#0f172a; border:1px solid var(--glass); border-radius:16px; padding:16px 18px }
     .card-inset{ background:#0b1324; border:1px solid var(--glass); border-radius:16px; padding:12px 14px }
     .table-wrap{ overflow:auto; max-height:50vh }
+    table{ color:#e5e7eb } th{ background:#0b1324 }
 
     /* ===== Login screen ===== */
     .login-screen{
@@ -111,12 +112,11 @@
 
     <!-- หัวเรื่อง 3 บรรทัด ตรงกลาง -->
     <div class="dash-title-stack">
-      <div class="dash-main-title">FINANCIAL DASHBOARD —</div>
+      <div class="dash-main-title">FINANCIAL DASHBOARD</div>
       <div class="dash-sub-title">
         <div id="companyInline">บริษัท รับทรัพย์โชคทวีจำกัด</div>
         <div id="companyInlineEn">RUBSAP CHOKTAWEE CO., LTD.</div>
       </div>
-      <small class="dash-subnote">บันทึกรายรับ-รายจ่าย • Export สำหรับยื่นบัญชี • Realtime ด้วย Firebase</small>
     </div>
 
     <div style="margin-top:.5rem">
@@ -395,6 +395,7 @@ function renderKPIs(){
 
 /* ================= Chart ================= */
 function renderChart(){
+  if(!monthPicker.value) return;
   const [yy,mm]=monthPicker.value.split('-').map(Number);
   const daysInMonth = new Date(yy, mm, 0).getDate();
   const labels=[...Array(daysInMonth)].map((_,i)=>String(i+1));
