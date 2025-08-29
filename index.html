@@ -11,10 +11,6 @@
   <!-- Thai fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Favicon (กัน 404) -->
-  <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23000'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' font-size='34' fill='%23fff'%3E%E0%B8%BF%3C/text%3E%3C/svg%3E">
-
   <style>
     :root{ --glass: rgba(255,255,255,.1); }
     body{ background:#0b1020; color:#e5e7eb; font-family:"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
@@ -32,61 +28,39 @@
 
     /* ===== Login screen ===== */
     .login-screen{
-      min-height:100dvh; display:grid; place-items:center;
-      background:
-        radial-gradient(50% 50% at 15% 15%, rgba(99,102,241,.18), transparent 60%),
-        radial-gradient(50% 50% at 85% 15%, rgba(14,165,233,.16), transparent 60%),
-        radial-gradient(50% 50% at 50% 85%, rgba(14,165,233,.10), transparent 60%),
-        #0b1020;
-      padding:24px;
+      min-height:100dvh; display:grid; place-items:center; background:#0b1020; padding:24px;
     }
     .login-card{
       width:100%; max-width:640px; padding:36px 28px; border-radius:18px;
       background:rgba(15,23,42,.9); border:1px solid var(--glass);
       box-shadow:0 20px 40px rgba(2,6,23,.6); color:#e5e7eb; text-align:center;
     }
-    .title-stack{ margin:0 0 10px 0; text-align:center; }
-    .main-title{
-      font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; letter-spacing:.4px;
-      font-size:clamp(26px,4vw,38px);
-      -webkit-text-fill-color:#fff; -webkit-text-stroke:1.4px #000; color:#fff;
-    }
-    .sub-title{
-      font-family:"Kanit","Noto Sans Thai",sans-serif; margin-top:2px; font-weight:800; letter-spacing:.2px;
-      font-size:clamp(18px,2.6vw,26px);
-      -webkit-text-fill-color:#fff; -webkit-text-stroke:1px #000; color:#fff;
-    }
-    .btn-google{
-      all: unset;
-      display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
-      padding:1rem 1.25rem; background:#000; color:#fff;
-      border:2px solid #fff; border-radius:12px; font-weight:800; letter-spacing:.3px;
-      cursor:pointer; user-select:none; margin-top:8px;
-    }
-    .btn-google:hover{ opacity:.9; }
+    .title-stack{ margin-bottom:10px; text-align:center; }
+    .main-title{ font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(26px,4vw,38px);
+      -webkit-text-fill-color:#fff; -webkit-text-stroke:1.4px #000; color:#fff; }
+    .sub-title{ font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(18px,2.6vw,26px);
+      -webkit-text-fill-color:#fff; -webkit-text-stroke:1px #000; color:#fff; }
+    .btn-google{ all: unset; cursor:pointer; padding:1rem 1.25rem; border:2px solid #fff; border-radius:12px;
+      background:#000; color:#fff; font-weight:800; }
 
     /* ===== Dashboard header (center titles + signout link) ===== */
-    .dash-header{ position: relative; text-align: center; margin-bottom: .75rem; }
-    .dash-title-stack{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+    .dash-header{ position:relative; text-align:center; margin:2rem auto 1rem; padding:0 1rem; }
+    .dash-title-stack{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; max-width:100%; word-wrap:break-word; }
     .dash-main-title{
-      font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; letter-spacing:.4px;
+      font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800;
       font-size:clamp(26px,4vw,38px); text-transform:uppercase;
-      -webkit-text-fill-color:#000; -webkit-text-stroke:1.4px #fff; color:#000; text-shadow:none;
+      -webkit-text-fill-color:#000; -webkit-text-stroke:1.4px #fff; color:#000;
     }
     .dash-sub-title{
       display:flex; flex-direction:column; align-items:center; gap:2px;
-      font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800;
-      font-size:clamp(18px,2.6vw,26px);
-      -webkit-text-fill-color:#000; -webkit-text-stroke:1px #fff; color:#000; text-shadow:none;
+      font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(18px,2.6vw,26px);
+      -webkit-text-fill-color:#000; -webkit-text-stroke:1px #fff; color:#000;
     }
-    #companyInlineEn{
-      font-size:clamp(15px,2.2vw,22px); font-weight:700; letter-spacing:1px; text-transform:uppercase;
-      -webkit-text-fill-color:#000; -webkit-text-stroke:1px #fff; color:#000; text-shadow:none;
-    }
+    #companyInlineEn{ font-size:clamp(15px,2.2vw,22px); font-weight:700; letter-spacing:1px; text-transform:uppercase;
+      -webkit-text-fill-color:#000; -webkit-text-stroke:1px #fff; color:#000; }
     .signout-link{
-      position:absolute; right:12px; top:12px;
-      background:none; border:none; color:#fff; font-size:0.85rem;
-      text-decoration:underline; cursor:pointer; opacity:.85;
+      position:absolute; right:12px; top:12px; background:none; border:none; color:#fff;
+      font-size:0.85rem; text-decoration:underline; cursor:pointer; opacity:.85;
     }
     .signout-link:hover{ opacity:1; }
   </style>
@@ -124,7 +98,7 @@
     </div>
   </header>
 
-  <!-- Controls -->
+  <!-- Controls (ลบ 4 กล่องขวาออกแล้ว) -->
   <section class="app-surface">
     <div class="grid">
       <div>
@@ -141,12 +115,6 @@
         <label>รอบบัญชี (เดือน)
           <input id="monthPicker" type="month" required>
         </label>
-      </div>
-      <div style="display:flex; align-items:end; gap:.5rem">
-        <button id="btnApply" class="primary">โหลดข้อมูล</button>
-        <button id="btnExportCSV" class="secondary">Export CSV</button>
-        <button id="btnExportPDF" class="secondary">Export PDF</button>
-        <button id="btnPrint" class="secondary">พิมพ์รายงาน</button>
       </div>
     </div>
   </section>
@@ -168,7 +136,7 @@
     </article>
   </section>
 
-  <!-- Add transaction -->
+  <!-- Add transaction (แบบเดิม) -->
   <section>
     <article class="card-inset">
       <h3 style="margin-top:0">บันทึกรายการใหม่</h3>
@@ -238,11 +206,10 @@ const loginSection=$('loginSection'), dashboard=$('dashboard');
 const btnSignIn=$('btnSignIn'), btnSignOut=$('btnSignOut'), userBadge=$('userBadge');
 const companyInline=$('companyInline'), companyInlineEn=$('companyInlineEn');
 const companyName=$('companyName'), companyNameEn=$('companyNameEn');
-const monthPicker=$('monthPicker'), btnApply=$('btnApply');
+const monthPicker=$('monthPicker');
 const kpiIncome=$('kpiIncome'), kpiExpense=$('kpiExpense'), kpiNet=$('kpiNet'), periodLabel=$('periodLabel');
 const txForm=$('txForm'), txDate=$('txDate'), txType=$('txType'), txCategory=$('txCategory'), txAmount=$('txAmount'), txNote=$('txNote'), txMsg=$('txMsg');
 const txBody=$('txBody'), countLabel=$('countLabel'), searchBox=$('searchBox');
-const btnExportCSV=$('btnExportCSV'), btnExportPDF=$('btnExportPDF'), btnPrint=$('btnPrint');
 
 /* ================= State/Utils ================= */
 let currentUser=null, unsubscribe=null, txCache=[], chart=null;
@@ -299,7 +266,7 @@ auth.onAuthStateChanged(user=>{
     companyInlineEn.textContent = (companyNameEn.value||DEFAULT_COMPANY_EN).toUpperCase();
     txDate.value = toLocalDateTimeInput(new Date());
 
-    applyAndListen();
+    applyAndListen(); // โหลดข้อมูลอัตโนมัติ
   }else{
     dashboard.classList.add('hidden'); loginSection.classList.remove('hidden');
   }
@@ -312,12 +279,13 @@ function getTxCollectionRef(){
 }
 
 /* ================= Load / Realtime ================= */
-btnApply.addEventListener('click', applyAndListen);
+monthPicker.addEventListener('change', ()=>{
+  localStorage.setItem('monthPicker', monthPicker.value);
+  applyAndListen();
+});
+
 function applyAndListen(){
   if(!currentUser) return;
-  localStorage.setItem('companyNameTH', companyName.value.trim());
-  localStorage.setItem('companyNameEN', companyNameEn.value.trim());
-  localStorage.setItem('monthPicker', monthPicker.value);
 
   if(unsubscribe){unsubscribe();unsubscribe=null;}
   const {start,end}=monthRange(monthPicker.value);
@@ -420,76 +388,6 @@ function renderChart(){
     ]},
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top' }}, scales:{ y:{ beginAtZero:true } } }
   });
-}
-
-/* ================= Export ================= */
-function toCSV(){
-  const {start,end}=monthRange(monthPicker.value);
-  const header=['CompanyTH','CompanyEN','PeriodStart','PeriodEnd','Date','Time','Type','Category','Amount','Note','CreatedBy'];
-  const lines=[header.join(',')];
-  txCache.forEach(r=>{
-    const d=new Date(r.date?.seconds ? r.date.seconds*1000 : r.date);
-    const date=[d.getFullYear(),pad2(d.getMonth()+1),pad2(d.getDate())].join('-');
-    const time=[pad2(d.getHours()),pad2(d.getMinutes())].join(':');
-    const esc=s=>('"'+String(s??'').replace(/"/g,'""')+'"');
-    lines.push([
-      esc(companyInline.textContent||DEFAULT_COMPANY_TH),
-      esc(companyInlineEn.textContent||DEFAULT_COMPANY_EN),
-      start.toISOString(), end.toISOString(), date, time, r.type,
-      esc(r.category||''), Number(r.amount||0), esc(r.note||''), esc(r.createdBy||'')
-    ].join(','));
-  }); return lines.join('\n');
-}
-function download(filename,text,type='text/plain'){ const blob=new Blob([text],{type}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url); }
-btnExportCSV.addEventListener('click', ()=> download(`export_${(companyInline.textContent||'company').replace(/\s+/g,'-')}_${monthPicker.value}.csv`, toCSV(), 'text/csv;charset=utf-8'));
-
-btnExportPDF.addEventListener('click', ()=> openPrintable(true));
-btnPrint.addEventListener('click', ()=> openPrintable(false));
-
-function openPrintable(saveAsPDF){
-  const {start,end}=monthRange(monthPicker.value);
-  const income=txCache.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount||0),0);
-  const expense=txCache.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
-  const net=income-expense;
-  const rows=txCache.map(r=>{
-    const d=new Date(r.date?.seconds ? r.date.seconds*1000 : r.date);
-    const sign=r.type==='expense'?'-':'';
-    return `<tr>
-      <td>${d.toLocaleDateString('th-TH')}</td>
-      <td>${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</td>
-      <td>${r.type==='income'?'รายรับ':'รายจ่าย'}</td>
-      <td>${r.category||''}</td>
-      <td style="text-align:right">${sign}${fmtBaht(r.amount)}</td>
-      <td>${r.note||''}</td>
-    </tr>`;
-  }).join('');
-
-  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>Report — ${(companyInline.textContent||DEFAULT_COMPANY_TH)}</title>
-<style>
-body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;padding:24px}
-h2{margin:0 0 6px 0}
-table{width:100%;border-collapse:collapse;margin-top:12px}
-th,td{border:1px solid #ddd;padding:6px 8px;font-size:13px}
-th{background:#f6f6f6}
-.right{text-align:right}
-small{color:#666}
-</style></head><body>
-<h2>สรุปรายรับ-รายจ่าย</h2>
-<div>บริษัท: <b>${companyInline.textContent||DEFAULT_COMPANY_TH}</b><br>
-<span style="text-transform:uppercase">${companyInlineEn.textContent||DEFAULT_COMPANY_EN}</span><br>
-ช่วงรอบบัญชี: ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}</div>
-<table>
-  <thead><tr><th>วันที่</th><th>เวลา</th><th>ประเภท</th><th>หมวด</th><th class="right">จำนวนเงิน</th><th>หมายเหตุ</th></tr></thead>
-  <tbody>${rows || '<tr><td colspan="6">ไม่มีข้อมูล</td></tr>'}</tbody>
-  <tfoot>
-    <tr><td colspan="4" class="right">รวมรายรับ</td><td class="right">${fmtBaht(income)}</td><td></td></tr>
-    <tr><td colspan="4" class="right">รวมรายจ่าย</td><td class="right">-${fmtBaht(expense)}</td><td></td></tr>
-    <tr><td colspan="4" class="right">สุทธิ</td><td class="right">${net<0?'-':''}${fmtBaht(Math.abs(net))}</td><td></td></tr>
-  </tfoot>
-</table>
-<script>window.addEventListener('load',()=>{ ${saveAsPDF ? 'window.print();' : ''} });<\/script>
-</body></html>`;
-  const w=window.open("","_blank","width=900,height=700"); w.document.open(); w.document.write(html); w.document.close();
 }
 </script>
 </body>
