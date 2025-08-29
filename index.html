@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>บริษัท รับทรัพย์โชคทวีจำกัด — Financial Dashboard</title>
 
-  <!-- UI base -->
+  <!-- Base UI -->
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.0.6/css/pico.min.css">
 
-  <!-- Thai fonts (คมชัด) -->
+  <!-- Thai fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
@@ -40,7 +40,7 @@
       box-shadow:0 20px 40px rgba(2,6,23,.6); color:#e5e7eb; text-align:center;
     }
 
-    /* ชื่อบริษัท: ตัวขาว-ขอบดำ บรรทัดเดียว */
+    /* Company name: white fill + black stroke (single line) */
     .company-name{
       font-family:"Kanit","Noto Sans Thai",sans-serif;
       margin:4px 0 8px 0; font-weight:800; letter-spacing:.3px;
@@ -53,7 +53,7 @@
       cursor:pointer;
     }
 
-    /* ป้ายครอบข้อความ */
+    /* Tag under company name */
     .tag-pill{
       display:inline-block;
       padding:.35rem .9rem;
@@ -67,13 +67,12 @@
       margin: 2px 0 14px 0;
     }
 
-    /* ปุ่ม Google: พื้นดำ ขอบขาว */
+    /* Google button: black fill, white border */
     .btn-google{
       all: unset;
       display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
       padding:.95rem 1.2rem; background:#000; color:#fff;
-      border:2px solid #fff; border-radius:12px;
-      font-weight:800; letter-spacing:.3px; text-transform:none;
+      border:2px solid #fff; border-radius:12px; font-weight:800; letter-spacing:.3px;
       cursor:pointer; user-select:none;
     }
     .btn-google:hover{ opacity:.9; }
@@ -92,9 +91,9 @@
 <!-- ======================= LOGIN ======================= -->
 <section id="loginSection" class="login-screen">
   <article class="login-card">
-    <!-- ไม่มีโลโก้/กล่องด้านบน -->
+    <!-- No logo box -->
     <h2 id="companyTitle" class="company-name" title="คลิกเพื่อเปลี่ยนชื่อบริษัท"></h2>
-    <div class="tag-pill">บันทึกรายรับรายจ่าย</div>
+    <div class="tag-pill" id="tagLine">รายรับรายจ่าย</div>
     <button id="btnSignIn" class="btn-google" style="margin-top:6px">
       <img class="gmark" alt="Google" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
       SIGN IN WITH GOOGLE
@@ -206,7 +205,7 @@
 <!-- Firebase & Chart.js -->
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <script>
@@ -232,10 +231,10 @@ const pad2=n=>String(n).padStart(2,'0');
 const fmtBaht=n=>'฿'+(Number(n||0)).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const toLocalDateTimeInput=d=>{const t=new Date(d);return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}T${pad2(t.getHours())}:${pad2(t.getMinutes())}`};
 const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);return{start:new Date(y,m-1,1,0,0,0,0),end:new Date(y,m,1,0,0,0,0)}};
-// รองรับไทย: กันอักขระ path ต้องห้าม + เว้นวรรคเป็นขีด
+// support Thai names in path: replace spaces and block invalid chars
 const sanitizeId=s=>(s||'default').trim().replace(/[\/#?\[\]]/g,'-').replace(/\s+/g,'-');
 
-/* =============== ชื่อบริษัท: โหลด/แก้/ซิงก์ =============== */
+/* =============== Company name: load/edit/sync =============== */
 function getQueryCompany(){
   const p=new URLSearchParams(location.search).get('company');
   return p ? decodeURIComponent(p) : null;
@@ -276,14 +275,13 @@ auth.onAuthStateChanged(user=>{
     monthPicker.value=localStorage.getItem('monthPicker')||new Date().toISOString().slice(0,7);
     dashboardTitle.textContent=`Financial Dashboard — ${companyName.value}`;
     txDate.value=toLocalDateTimeInput(new Date());
-
     applyAndListen();
   }else{
     dashboard.classList.add('hidden'); loginSection.classList.remove('hidden');
   }
 });
 
-/* เมื่อพิมพ์ชื่อบริษัทในแดชบอร์ด ให้ซิงก์หัวเรื่องทันที */
+/* sync title when input changed in dashboard */
 companyName?.addEventListener('input', ()=>{
   const n=(companyName.value||'').trim()||DEFAULT_COMPANY;
   dashboardTitle.textContent=`Financial Dashboard — ${n}`;
@@ -405,7 +403,7 @@ function openPrintable(saveAsPDF){
   const net=income-expense;
   const rows=txCache.map(r=>{
     const d=new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
-    const sign=r.type==='expense'?'-':'';
+    const sign=r.type==='expense' ? '-' : '';
     return `<tr>
       <td>${d.toLocaleDateString('th-TH')}</td>
       <td>${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</td>
@@ -415,6 +413,7 @@ function openPrintable(saveAsPDF){
       <td>${r.note||''}</td>
     </tr>`;
   }).join('');
+
   const html=`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>Report — ${companyName.value||'-'}</title>
 <style>
 body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;padding:24px}
