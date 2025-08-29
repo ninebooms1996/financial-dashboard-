@@ -5,18 +5,26 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>บริษัท รับทรัพย์โชคทวีจำกัด — Financial Dashboard</title>
 
+  <!-- UI base -->
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.0.6/css/pico.min.css">
+
+  <!-- Thai fonts (คมชัด) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root{ --glass: rgba(255,255,255,.08); }
-    body{ background:#0b1020; }
+    body{ background:#0b1020; font-family:"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+
     .hidden{ display:none!important }
-    .badge{ padding:.25rem .5rem; border-radius:999px; background:rgba(255,255,255,.1); font-size:.75rem }
-    .mono{ font-variant-numeric: tabular-nums; font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace }
-    .positive{ color:#16a34a; font-weight:600 } .negative{ color:#dc2626; font-weight:600 }
+    .badge{ padding:.25rem .5rem;border-radius:999px;background:rgba(255,255,255,.1);font-size:.75rem }
+    .mono{ font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace }
+    .positive{ color:#16a34a;font-weight:600 } .negative{ color:#dc2626;font-weight:600 }
     .pill{ border:1px solid var(--pico-muted-border-color); border-radius:999px; padding:.4rem .75rem }
     .table-wrap{ overflow:auto; max-height:50vh }
 
-    /* ===== Login (ชื่อบริษัท + ปุ่ม) ===== */
+    /* ===== Login screen ===== */
     .login-screen{
       min-height:100dvh; display:grid; place-items:center;
       background:
@@ -31,21 +39,41 @@
       background:rgba(15,23,42,.9); border:1px solid var(--glass);
       box-shadow:0 20px 40px rgba(2,6,23,.6); color:#e5e7eb; text-align:center;
     }
-    /* ชื่อบริษัท: สีขาว ขอบดำ บรรทัดเดียว */
+
+    /* ชื่อบริษัท: ตัวขาว-ขอบดำ บรรทัดเดียว */
     .company-name{
-      margin:.25rem 0 12px 0; font-weight:800;
+      font-family:"Kanit","Noto Sans Thai",sans-serif;
+      margin:4px 0 8px 0; font-weight:800; letter-spacing:.3px;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      font-size:clamp(22px, 3.6vw, 30px);
-      -webkit-text-fill-color:#fff; -webkit-text-stroke:1.6px #000; color:#fff;
+      font-size:clamp(24px,3.8vw,34px);
+      -webkit-text-fill-color:#fff;
+      -webkit-text-stroke:1.2px #000;
+      color:#fff;
       text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
       cursor:pointer;
     }
+
+    /* ป้ายครอบข้อความ */
+    .tag-pill{
+      display:inline-block;
+      padding:.35rem .9rem;
+      border:2px solid #fff;
+      border-radius:999px;
+      background:transparent;
+      color:#fff;
+      font-weight:700;
+      letter-spacing:.4px;
+      font-family:"Kanit","Noto Sans Thai",sans-serif;
+      margin: 2px 0 14px 0;
+    }
+
     /* ปุ่ม Google: พื้นดำ ขอบขาว */
     .btn-google{
       all: unset;
       display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
       padding:.95rem 1.2rem; background:#000; color:#fff;
-      border:2px solid #fff; border-radius:12px; font-weight:800; letter-spacing:.3px;
+      border:2px solid #fff; border-radius:12px;
+      font-weight:800; letter-spacing:.3px; text-transform:none;
       cursor:pointer; user-select:none;
     }
     .btn-google:hover{ opacity:.9; }
@@ -64,9 +92,10 @@
 <!-- ======================= LOGIN ======================= -->
 <section id="loginSection" class="login-screen">
   <article class="login-card">
-    <!-- ไม่มีกล่องโลโก้ด้านบน -->
+    <!-- ไม่มีโลโก้/กล่องด้านบน -->
     <h2 id="companyTitle" class="company-name" title="คลิกเพื่อเปลี่ยนชื่อบริษัท"></h2>
-    <button id="btnSignIn" class="btn-google">
+    <div class="tag-pill">บันทึกรายรับรายจ่าย</div>
+    <button id="btnSignIn" class="btn-google" style="margin-top:6px">
       <img class="gmark" alt="Google" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
       SIGN IN WITH GOOGLE
     </button>
@@ -206,9 +235,9 @@ const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);return{start
 // รองรับไทย: กันอักขระ path ต้องห้าม + เว้นวรรคเป็นขีด
 const sanitizeId=s=>(s||'default').trim().replace(/[\/#?\[\]]/g,'-').replace(/\s+/g,'-');
 
-/* =============== Company name: load / edit / sync =============== */
+/* =============== ชื่อบริษัท: โหลด/แก้/ซิงก์ =============== */
 function getQueryCompany(){
-  const p = new URLSearchParams(location.search).get('company');
+  const p=new URLSearchParams(location.search).get('company');
   return p ? decodeURIComponent(p) : null;
 }
 const DEFAULT_COMPANY='บริษัท รับทรัพย์โชคทวีจำกัด';
@@ -216,13 +245,11 @@ function setCompanyName(name){
   const n=(name||'').trim()||DEFAULT_COMPANY;
   companyTitle.textContent=n;
   localStorage.setItem('companyNameTitle', n);
-  document.title = `${n} — Financial Dashboard`;
+  document.title=`${n} — Financial Dashboard`;
   if(companyName && (!companyName.value || companyName.value===DEFAULT_COMPANY)) companyName.value=n;
   dashboardTitle.textContent=`Financial Dashboard — ${n}`;
 }
 setCompanyName(getQueryCompany() || localStorage.getItem('companyNameTitle') || DEFAULT_COMPANY);
-
-// คลิกชื่อเพื่อแก้ทันที
 companyTitle.addEventListener('click', ()=>{
   const v=prompt('ตั้งชื่อบริษัทใหม่', companyTitle.textContent.trim());
   if(v!==null){ setCompanyName(v); localStorage.setItem('companyName', v); }
@@ -249,13 +276,14 @@ auth.onAuthStateChanged(user=>{
     monthPicker.value=localStorage.getItem('monthPicker')||new Date().toISOString().slice(0,7);
     dashboardTitle.textContent=`Financial Dashboard — ${companyName.value}`;
     txDate.value=toLocalDateTimeInput(new Date());
+
     applyAndListen();
   }else{
     dashboard.classList.add('hidden'); loginSection.classList.remove('hidden');
   }
 });
 
-/* =============== Sync title when input changes =============== */
+/* เมื่อพิมพ์ชื่อบริษัทในแดชบอร์ด ให้ซิงก์หัวเรื่องทันที */
 companyName?.addEventListener('input', ()=>{
   const n=(companyName.value||'').trim()||DEFAULT_COMPANY;
   dashboardTitle.textContent=`Financial Dashboard — ${n}`;
