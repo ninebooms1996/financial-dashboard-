@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>รายรับรายจ่าย — Financial Dashboard</title>
 
-  <!-- UI base -->
+  <!-- Base UI -->
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.0.6/css/pico.min.css">
+
   <!-- Thai fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,26 +35,38 @@
       padding:24px;
     }
     .login-card{
-      width:100%; max-width:560px; padding:32px 28px; border-radius:18px;
+      width:100%; max-width:640px; padding:36px 28px; border-radius:18px;
       background:rgba(15,23,42,.9); border:1px solid var(--glass);
       box-shadow:0 20px 40px rgba(2,6,23,.6); color:#e5e7eb; text-align:center;
     }
-    /* หัวข้อ: “รายรับรายจ่าย” (ตัวขาว-ขอบดำ บรรทัดเดียว) */
-    .title-text{
+
+    /* หัวเรื่อง 2 บรรทัด */
+    .title-stack{ margin:0 0 10px 0; }
+    .main-title{
       font-family:"Kanit","Noto Sans Thai",sans-serif;
-      margin:2px 0 12px 0; font-weight:800; letter-spacing:.4px;
+      font-weight:800; letter-spacing:.4px;
+      font-size:clamp(26px,4vw,38px);
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      font-size:clamp(26px,4vw,36px);
-      -webkit-text-fill-color:#fff; -webkit-text-stroke:1.2px #000; color:#fff;
+      -webkit-text-fill-color:#fff; -webkit-text-stroke:1.4px #000; color:#fff;
       text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     }
+    .sub-title{
+      font-family:"Kanit","Noto Sans Thai",sans-serif;
+      margin-top:2px; font-weight:800; letter-spacing:.2px;
+      font-size:clamp(18px,2.6vw,26px);      /* ย่อให้ “พอดี” การ์ด */
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      -webkit-text-fill-color:#fff; -webkit-text-stroke:1px #000; color:#fff;
+      text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+      cursor:pointer;                         /* คลิกเพื่อแก้ชื่อได้ */
+    }
+
     /* ปุ่ม Google: พื้นดำ ขอบขาว */
     .btn-google{
       all: unset;
       display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
-      padding:.95rem 1.2rem; background:#000; color:#fff;
+      padding:1rem 1.25rem; background:#000; color:#fff;
       border:2px solid #fff; border-radius:12px; font-weight:800; letter-spacing:.3px;
-      cursor:pointer; user-select:none; margin-top:0;
+      cursor:pointer; user-select:none; margin-top:8px;
     }
     .btn-google:hover{ opacity:.9; }
     .btn-google:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
@@ -71,8 +84,10 @@
 <!-- ======================= LOGIN ======================= -->
 <section id="loginSection" class="login-screen">
   <article class="login-card">
-    <!-- เอาชื่อบริษัทออกแล้ว ใช้หัวข้อ “รายรับรายจ่าย” แทน -->
-    <div class="title-text">รายรับรายจ่าย</div>
+    <div class="title-stack">
+      <div class="main-title">รายรับรายจ่าย</div>
+      <div id="companyTitle" class="sub-title" title="คลิกเพื่อเปลี่ยนชื่อบริษัท">บริษัท รับทรัพย์โชคทวีจำกัด</div>
+    </div>
     <button id="btnSignIn" class="btn-google">
       <img class="gmark" alt="Google" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
       SIGN IN WITH GOOGLE
@@ -84,7 +99,7 @@
 <main id="dashboard" class="container app-shell hidden">
   <header class="grid" style="align-items:center">
     <div>
-      <h1 id="dashboardTitle" style="margin-bottom:.25rem">Financial Dashboard</h1>
+      <h1 id="dashboardTitle" style="margin-bottom:.25rem">Financial Dashboard — <span id="companyInline">บริษัท รับทรัพย์โชคทวีจำกัด</span></h1>
       <small>บันทึกรายรับ-รายจ่าย • Export สำหรับยื่นบัญชี • Realtime ด้วย Firebase</small>
     </div>
     <div style="display:flex; gap:.5rem; justify-content:flex-end; align-items:center">
@@ -97,7 +112,7 @@
   <section class="app-surface">
     <div class="grid">
       <div>
-        <label>ชื่อบริษัท (สำหรับใช้ในรายงาน/ไฟล์ที่ส่งบัญชี)
+        <label>ชื่อบริษัท (ใช้ในรายงาน/ไฟล์ที่ส่งบัญชี)
           <input id="companyName" type="text" placeholder="เช่น บริษัท เอ บี ซี จำกัด" />
         </label>
       </div>
@@ -187,23 +202,27 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <script>
-/* =============== Firebase =============== */
-const firebaseConfig={ apiKey:"AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo", authDomain:"financial-dashboard-3d5dc.firebaseapp.com", projectId:"financial-dashboard-3d5dc" };
+/* ================= Firebase ================= */
+const firebaseConfig={
+  apiKey:"AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo",
+  authDomain:"financial-dashboard-3d5dc.firebaseapp.com",
+  projectId:"financial-dashboard-3d5dc"
+};
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore();
 
-/* =============== Refs =============== */
+/* ================= Refs ================= */
 const $=id=>document.getElementById(id);
 const loginSection=$('loginSection'), dashboard=$('dashboard');
 const btnSignIn=$('btnSignIn'), btnSignOut=$('btnSignOut'), userBadge=$('userBadge');
-const dashboardTitle=$('dashboardTitle');
+const companyTitle=$('companyTitle'), companyInline=$('companyInline');
 const companyName=$('companyName'), monthPicker=$('monthPicker'), btnApply=$('btnApply');
 const kpiIncome=$('kpiIncome'), kpiExpense=$('kpiExpense'), kpiNet=$('kpiNet'), periodLabel=$('periodLabel');
 const txForm=$('txForm'), txDate=$('txDate'), txType=$('txType'), txCategory=$('txCategory'), txAmount=$('txAmount'), txNote=$('txNote'), txMsg=$('txMsg');
 const txBody=$('txBody'), countLabel=$('countLabel'), searchBox=$('searchBox');
 const btnExportCSV=$('btnExportCSV'), btnExportPDF=$('btnExportPDF'), btnPrint=$('btnPrint');
 
-/* =============== State/Utils =============== */
+/* ================= State/Utils ================= */
 let currentUser=null, unsubscribe=null, txCache=[], chart=null;
 const DEFAULT_COMPANY='บริษัท รับทรัพย์โชคทวีจำกัด';
 const pad2=n=>String(n).padStart(2,'0');
@@ -212,13 +231,28 @@ const toLocalDateTimeInput=d=>{const t=new Date(d);return `${t.getFullYear()}-${
 const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);return{start:new Date(y,m-1,1,0,0,0,0),end:new Date(y,m,1,0,0,0,0)}};
 const sanitizeId=s=>(s||'default').trim().replace(/[\/#?\[\]]/g,'-').replace(/\s+/g,'-');
 
-/* =============== Firestore path =============== */
+/* ======== Company name on login (editable) ======== */
+function setCompanyName(name){
+  const n=(name||'').trim()||DEFAULT_COMPANY;
+  if(companyTitle) companyTitle.textContent=n;
+  if(companyInline) companyInline.textContent=n;
+  if(companyName && !companyName.value) companyName.value=n;
+  localStorage.setItem('companyNameTitle', n);
+}
+setCompanyName(localStorage.getItem('companyNameTitle') || localStorage.getItem('companyName') || DEFAULT_COMPANY);
+
+companyTitle?.addEventListener('click', ()=>{
+  const v=prompt('ตั้งชื่อบริษัทใหม่', companyTitle.textContent.trim());
+  if(v!==null){ setCompanyName(v); }
+});
+
+/* ================= Firestore path ================= */
 function getTxCollectionRef(){
-  const comp=sanitizeId(companyName.value || DEFAULT_COMPANY);
+  const comp=sanitizeId(companyName.value || companyTitle?.textContent || DEFAULT_COMPANY);
   return db.collection('users').doc(currentUser.uid).collection('companies').doc(comp).collection('transactions');
 }
 
-/* =============== Auth =============== */
+/* ================= Auth ================= */
 btnSignIn.addEventListener('click', async ()=>{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); });
 btnSignOut.addEventListener('click', async ()=>{ if(unsubscribe){unsubscribe();unsubscribe=null;} await auth.signOut(); });
 
@@ -228,20 +262,25 @@ auth.onAuthStateChanged(user=>{
     userBadge.textContent=user.displayName||user.email;
     loginSection.classList.add('hidden'); dashboard.classList.remove('hidden');
 
-    companyName.value=localStorage.getItem('companyName') || DEFAULT_COMPANY;
-    monthPicker.value=localStorage.getItem('monthPicker') || new Date().toISOString().slice(0,7);
-    dashboardTitle.textContent='Financial Dashboard';
-    txDate.value=toLocalDateTimeInput(new Date());
+    companyName.value = localStorage.getItem('companyName') || companyTitle.textContent || DEFAULT_COMPANY;
+    monthPicker.value = localStorage.getItem('monthPicker') || new Date().toISOString().slice(0,7);
+    companyInline.textContent = companyName.value;
+    txDate.value = toLocalDateTimeInput(new Date());
     applyAndListen();
   }else{
     dashboard.classList.add('hidden'); loginSection.classList.remove('hidden');
   }
 });
 
-/* เมื่อแก้ชื่อบริษัทในแดชบอร์ด เก็บไว้ใช้ครั้งต่อไป */
-companyName?.addEventListener('input', ()=> localStorage.setItem('companyName', companyName.value.trim()) );
+/* sync company across places */
+companyName?.addEventListener('input', ()=>{
+  const n=(companyName.value||'').trim();
+  companyInline.textContent=n||DEFAULT_COMPANY;
+  localStorage.setItem('companyName', n);
+  localStorage.setItem('companyNameTitle', n||DEFAULT_COMPANY);
+});
 
-/* =============== Load / Realtime =============== */
+/* ================= Load / Realtime ================= */
 btnApply.addEventListener('click', applyAndListen);
 function applyAndListen(){
   if(!currentUser) return;
@@ -260,12 +299,17 @@ function applyAndListen(){
     }, err=>alert('โหลดข้อมูลผิดพลาด: '+err.message));
 }
 
-/* =============== Add transaction =============== */
+/* ================= Add transaction ================= */
 txForm.addEventListener('submit', async e=>{
   e.preventDefault(); if(!currentUser) return;
-  const data={ uid:currentUser.uid, company:companyName.value.trim()||DEFAULT_COMPANY, type:txType.value,
-    category:txCategory.value, amount:Number(txAmount.value||0), note:txNote.value.trim(),
-    date:new Date(txDate.value), createdAt:new Date(), createdBy:currentUser.email||currentUser.uid };
+  const data={
+    uid:currentUser.uid,
+    company:companyName.value.trim() || companyInline.textContent || DEFAULT_COMPANY,
+    type:txType.value, category:txCategory.value,
+    amount:Number(txAmount.value||0), note:txNote.value.trim(),
+    date:new Date(txDate.value), createdAt:new Date(),
+    createdBy:currentUser.email||currentUser.uid
+  };
   txMsg.textContent='...กำลังบันทึก';
   try{
     await getTxCollectionRef().add(data);
@@ -275,7 +319,7 @@ txForm.addEventListener('submit', async e=>{
   }catch(err){ txMsg.textContent='ผิดพลาด: '+err.message; }
 });
 
-/* =============== Table =============== */
+/* ================= Table ================= */
 searchBox.addEventListener('input', renderTable);
 function renderTable(){
   const q=(searchBox.value||'').toLowerCase();
@@ -302,7 +346,7 @@ function renderTable(){
   });
 }
 
-/* =============== KPIs =============== */
+/* ================= KPIs ================= */
 function renderKPIs(){
   const income=txCache.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount||0),0);
   const expense=txCache.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
@@ -311,7 +355,7 @@ function renderKPIs(){
   kpiNet.textContent=(net>=0?'':'-')+fmtBaht(Math.abs(net));
 }
 
-/* =============== Chart =============== */
+/* ================= Chart ================= */
 function renderChart(){
   const {start}=monthRange(monthPicker.value);
   const days=new Date(start.getFullYear(), start.getMonth()+1, 0).getDate();
@@ -327,7 +371,7 @@ function renderChart(){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
 }
 
-/* =============== Export =============== */
+/* ================= Export ================= */
 function toCSV(){
   const {start,end}=monthRange(monthPicker.value);
   const header=['Company','PeriodStart','PeriodEnd','Date','Time','Type','Category','Amount','Note','CreatedBy'];
@@ -337,7 +381,7 @@ function toCSV(){
     const date=[d.getFullYear(),pad2(d.getMonth()+1),pad2(d.getDate())].join('-');
     const time=[pad2(d.getHours()),pad2(d.getMinutes())].join(':');
     lines.push([
-      `"${(companyName.value||DEFAULT_COMPANY).replace(/"/g,'""')}"`,
+      `"${(companyName.value||companyInline.textContent||DEFAULT_COMPANY).replace(/"/g,'""')}"`,
       start.toISOString(), end.toISOString(), date, time, r.type,
       `"${(r.category||'').replace(/"/g,'""')}"`,
       Number(r.amount||0), `"${(r.note||'').replace(/"/g,'""')}"`, `"${(r.createdBy||'').replace(/"/g,'""')}"`
@@ -366,7 +410,8 @@ function openPrintable(saveAsPDF){
       <td>${r.note||''}</td>
     </tr>`;
   }).join('');
-  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>Report — ${(companyName.value||DEFAULT_COMPANY)}</title>
+
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>Report — ${(companyName.value||companyInline.textContent||DEFAULT_COMPANY)}</title>
 <style>
 body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;padding:24px}
 table{width:100%;border-collapse:collapse;margin-top:16px}
@@ -375,7 +420,7 @@ th{background:#f6f6f6}
 .right{text-align:right}
 </style></head><body>
 <h2>สรุปรายรับ-รายจ่าย</h2>
-<div>บริษัท: <b>${companyName.value||DEFAULT_COMPANY}</b> • รอบบัญชี: ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}</div>
+<div>บริษัท: <b>${companyName.value||companyInline.textContent||DEFAULT_COMPANY}</b> • รอบบัญชี: ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}</div>
 <table>
   <thead><tr><th>วันที่</th><th>เวลา</th><th>ประเภท</th><th>หมวด</th><th class="right">จำนวนเงิน</th><th>หมายเหตุ</th></tr></thead>
   <tbody>${rows || '<tr><td colspan="6">ไม่มีข้อมูล</td></tr>'}</tbody>
