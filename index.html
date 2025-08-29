@@ -16,13 +16,17 @@
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23000'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' font-size='34' fill='%23fff'%3E%E0%B8%BF%3C/text%3E%3C/svg%3E">
 
   <style>
-    :root{ --glass: rgba(255,255,255,.08); }
-    body{ background:#0b1020; font-family:"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+    :root{ --glass: rgba(255,255,255,.1); }
+    body{ background:#0b1020; color:#e5e7eb; font-family:"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+    .container.app-shell{ max-width:1100px }
+
     .hidden{ display:none!important }
     .badge{ padding:.25rem .5rem;border-radius:999px;background:rgba(255,255,255,.12);font-size:.75rem }
+    .pill{ border:1px solid var(--pico-muted-border-color); border-radius:999px; padding:.4rem .75rem }
     .mono{ font-variant-numeric:tabular-nums; font-family:ui-monospace,Menlo,Consolas,monospace }
     .positive{ color:#16a34a;font-weight:600 } .negative{ color:#dc2626;font-weight:600 }
-    .pill{ border:1px solid var(--pico-muted-border-color); border-radius:999px; padding:.4rem .75rem }
+    .app-surface{ background:#0f172a; border:1px solid var(--glass); border-radius:16px; padding:16px 18px }
+    .card-inset{ background:#0b1324; border:1px solid var(--glass); border-radius:16px; padding:12px 14px }
     .table-wrap{ overflow:auto; max-height:50vh }
 
     /* ===== Login screen ===== */
@@ -42,14 +46,12 @@
     }
     .title-stack{ margin:0 0 10px 0; text-align:center; }
     .main-title{
-      font-family:"Kanit","Noto Sans Thai",sans-serif;
-      font-weight:800; letter-spacing:.4px;
+      font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; letter-spacing:.4px;
       font-size:clamp(26px,4vw,38px);
       -webkit-text-fill-color:#fff; -webkit-text-stroke:1.4px #000; color:#fff;
     }
     .sub-title{
-      font-family:"Kanit","Noto Sans Thai",sans-serif;
-      margin-top:2px; font-weight:800; letter-spacing:.2px;
+      font-family:"Kanit","Noto Sans Thai",sans-serif; margin-top:2px; font-weight:800; letter-spacing:.2px;
       font-size:clamp(18px,2.6vw,26px);
       -webkit-text-fill-color:#fff; -webkit-text-stroke:1px #000; color:#fff;
     }
@@ -61,13 +63,6 @@
       cursor:pointer; user-select:none; margin-top:8px;
     }
     .btn-google:hover{ opacity:.9; }
-    .btn-google:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
-
-    /* ===== Dashboard ===== */
-    .app-shell{ max-width:1100px }
-    .app-surface{ background:#0f172a; color:#e5e7eb; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px 18px }
-    .card-inset{ background:#0b1324; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:12px 14px }
-    table{ color:#e5e7eb } th{ background:#0b1324 }
 
     /* ===== Dashboard header (center titles + signout link) ===== */
     .dash-header{ position: relative; text-align: center; margin-bottom: .75rem; }
@@ -93,7 +88,6 @@
       text-decoration:underline; cursor:pointer; opacity:.85;
     }
     .signout-link:hover{ opacity:1; }
-
   </style>
 </head>
 <body>
@@ -105,19 +99,17 @@
       <div class="main-title">รายรับรายจ่าย</div>
       <div id="companyTitle" class="sub-title">บริษัท รับทรัพย์โชคทวีจำกัด</div>
     </div>
-    <button id="btnSignIn" class="btn-google">
-      SIGN IN WITH GOOGLE
-    </button>
+    <button id="btnSignIn" class="btn-google">SIGN IN WITH GOOGLE</button>
   </article>
 </section>
 
 <!-- ======================= DASHBOARD ======================= -->
 <main id="dashboard" class="container app-shell hidden">
   <header class="dash-header">
-    <!-- ลิงก์ออกจากระบบมุมขวาบน -->
+    <!-- ปุ่มออกจากระบบ: ข้อความเล็ก มุมขวาบน -->
     <button id="btnSignOut" class="signout-link">ออกจากระบบ</button>
 
-    <!-- หัวเรื่อง 3 บรรทัด -->
+    <!-- หัวเรื่อง 3 บรรทัด ตรงกลาง -->
     <div class="dash-title-stack">
       <div class="dash-main-title">FINANCIAL DASHBOARD —</div>
       <div class="dash-sub-title">
