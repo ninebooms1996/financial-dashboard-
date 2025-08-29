@@ -40,7 +40,7 @@
       box-shadow:0 20px 40px rgba(2,6,23,.6); color:#e5e7eb; text-align:center;
     }
 
-    /* Company name: white fill + black stroke (single line) */
+    /* ชื่อบริษัท: ตัวขาว-ขอบดำ บรรทัดเดียว */
     .company-name{
       font-family:"Kanit","Noto Sans Thai",sans-serif;
       margin:4px 0 8px 0; font-weight:800; letter-spacing:.3px;
@@ -53,27 +53,24 @@
       cursor:pointer;
     }
 
-    /* Tag under company name */
+    /* ป้าย “รายรับรายจ่าย” วางเหนือปุ่ม Google ชิดกัน */
     .tag-pill{
       display:inline-block;
       padding:.35rem .9rem;
-      border:2px solid #fff;
-      border-radius:999px;
-      background:transparent;
-      color:#fff;
-      font-weight:700;
-      letter-spacing:.4px;
+      border:2px solid #fff; border-radius:999px;
+      background:transparent; color:#fff;
+      font-weight:700; letter-spacing:.4px;
       font-family:"Kanit","Noto Sans Thai",sans-serif;
-      margin: 2px 0 14px 0;
+      margin: 6px auto 8px; /* ชิดด้านบนของปุ่ม */
     }
 
-    /* Google button: black fill, white border */
+    /* ปุ่ม Google: พื้นดำ ขอบขาว */
     .btn-google{
       all: unset;
       display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
       padding:.95rem 1.2rem; background:#000; color:#fff;
       border:2px solid #fff; border-radius:12px; font-weight:800; letter-spacing:.3px;
-      cursor:pointer; user-select:none;
+      cursor:pointer; user-select:none; margin-top:0;
     }
     .btn-google:hover{ opacity:.9; }
     .btn-google:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
@@ -91,10 +88,10 @@
 <!-- ======================= LOGIN ======================= -->
 <section id="loginSection" class="login-screen">
   <article class="login-card">
-    <!-- No logo box -->
+    <!-- ไม่มีโลโก้/กล่องอื่น -->
     <h2 id="companyTitle" class="company-name" title="คลิกเพื่อเปลี่ยนชื่อบริษัท"></h2>
     <div class="tag-pill" id="tagLine">รายรับรายจ่าย</div>
-    <button id="btnSignIn" class="btn-google" style="margin-top:6px">
+    <button id="btnSignIn" class="btn-google">
       <img class="gmark" alt="Google" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
       SIGN IN WITH GOOGLE
     </button>
@@ -205,7 +202,7 @@
 <!-- Firebase & Chart.js -->
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
-script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <script>
@@ -281,7 +278,7 @@ auth.onAuthStateChanged(user=>{
   }
 });
 
-/* sync title when input changed in dashboard */
+/* live sync title when input changed in dashboard */
 companyName?.addEventListener('input', ()=>{
   const n=(companyName.value||'').trim()||DEFAULT_COMPANY;
   dashboardTitle.textContent=`Financial Dashboard — ${n}`;
@@ -403,7 +400,7 @@ function openPrintable(saveAsPDF){
   const net=income-expense;
   const rows=txCache.map(r=>{
     const d=new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
-    const sign=r.type==='expense' ? '-' : '';
+    const sign=r.type==='expense'?'-':'';
     return `<tr>
       <td>${d.toLocaleDateString('th-TH')}</td>
       <td>${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</td>
@@ -413,7 +410,6 @@ function openPrintable(saveAsPDF){
       <td>${r.note||''}</td>
     </tr>`;
   }).join('');
-
   const html=`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>Report — ${companyName.value||'-'}</title>
 <style>
 body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;padding:24px}
