@@ -3,11 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>บริษัท รับทรัพย์โชคทวีจำกัด — Financial Dashboard</title>
+  <title>รายรับรายจ่าย — Financial Dashboard</title>
 
-  <!-- Base UI -->
+  <!-- UI base -->
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.0.6/css/pico.min.css">
-
   <!-- Thai fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,31 +38,15 @@
       background:rgba(15,23,42,.9); border:1px solid var(--glass);
       box-shadow:0 20px 40px rgba(2,6,23,.6); color:#e5e7eb; text-align:center;
     }
-
-    /* ชื่อบริษัท: ตัวขาว-ขอบดำ บรรทัดเดียว */
-    .company-name{
+    /* หัวข้อ: “รายรับรายจ่าย” (ตัวขาว-ขอบดำ บรรทัดเดียว) */
+    .title-text{
       font-family:"Kanit","Noto Sans Thai",sans-serif;
-      margin:4px 0 8px 0; font-weight:800; letter-spacing:.3px;
+      margin:2px 0 12px 0; font-weight:800; letter-spacing:.4px;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      font-size:clamp(24px,3.8vw,34px);
-      -webkit-text-fill-color:#fff;
-      -webkit-text-stroke:1.2px #000;
-      color:#fff;
+      font-size:clamp(26px,4vw,36px);
+      -webkit-text-fill-color:#fff; -webkit-text-stroke:1.2px #000; color:#fff;
       text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-      cursor:pointer;
     }
-
-    /* ป้าย “รายรับรายจ่าย” วางเหนือปุ่ม Google ชิดกัน */
-    .tag-pill{
-      display:inline-block;
-      padding:.35rem .9rem;
-      border:2px solid #fff; border-radius:999px;
-      background:transparent; color:#fff;
-      font-weight:700; letter-spacing:.4px;
-      font-family:"Kanit","Noto Sans Thai",sans-serif;
-      margin: 6px auto 8px; /* ชิดด้านบนของปุ่ม */
-    }
-
     /* ปุ่ม Google: พื้นดำ ขอบขาว */
     .btn-google{
       all: unset;
@@ -76,7 +59,7 @@
     .btn-google:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
     .gmark{ width:18px; height:18px; }
 
-    /* ===== Dashboard look ===== */
+    /* ===== Dashboard ===== */
     .app-shell{ max-width:1100px }
     .app-surface{ background:#0f172a; color:#e5e7eb; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px 18px }
     .card-inset{ background:#0b1324; border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:12px 14px }
@@ -88,9 +71,8 @@
 <!-- ======================= LOGIN ======================= -->
 <section id="loginSection" class="login-screen">
   <article class="login-card">
-    <!-- ไม่มีโลโก้/กล่องอื่น -->
-    <h2 id="companyTitle" class="company-name" title="คลิกเพื่อเปลี่ยนชื่อบริษัท"></h2>
-    <div class="tag-pill" id="tagLine">รายรับรายจ่าย</div>
+    <!-- เอาชื่อบริษัทออกแล้ว ใช้หัวข้อ “รายรับรายจ่าย” แทน -->
+    <div class="title-text">รายรับรายจ่าย</div>
     <button id="btnSignIn" class="btn-google">
       <img class="gmark" alt="Google" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
       SIGN IN WITH GOOGLE
@@ -102,7 +84,7 @@
 <main id="dashboard" class="container app-shell hidden">
   <header class="grid" style="align-items:center">
     <div>
-      <h1 id="dashboardTitle" style="margin-bottom:.25rem">Financial Dashboard — </h1>
+      <h1 id="dashboardTitle" style="margin-bottom:.25rem">Financial Dashboard</h1>
       <small>บันทึกรายรับ-รายจ่าย • Export สำหรับยื่นบัญชี • Realtime ด้วย Firebase</small>
     </div>
     <div style="display:flex; gap:.5rem; justify-content:flex-end; align-items:center">
@@ -115,10 +97,9 @@
   <section class="app-surface">
     <div class="grid">
       <div>
-        <label>ชื่อบริษัท
+        <label>ชื่อบริษัท (สำหรับใช้ในรายงาน/ไฟล์ที่ส่งบัญชี)
           <input id="companyName" type="text" placeholder="เช่น บริษัท เอ บี ซี จำกัด" />
         </label>
-        <small>ใช้เป็นชื่อในรายงาน และเป็นแฟ้มใน Firestore</small>
       </div>
       <div>
         <label>รอบบัญชี (เดือน)
@@ -215,7 +196,7 @@ const auth=firebase.auth(), db=firebase.firestore();
 const $=id=>document.getElementById(id);
 const loginSection=$('loginSection'), dashboard=$('dashboard');
 const btnSignIn=$('btnSignIn'), btnSignOut=$('btnSignOut'), userBadge=$('userBadge');
-const companyTitle=$('companyTitle'), dashboardTitle=$('dashboardTitle');
+const dashboardTitle=$('dashboardTitle');
 const companyName=$('companyName'), monthPicker=$('monthPicker'), btnApply=$('btnApply');
 const kpiIncome=$('kpiIncome'), kpiExpense=$('kpiExpense'), kpiNet=$('kpiNet'), periodLabel=$('periodLabel');
 const txForm=$('txForm'), txDate=$('txDate'), txType=$('txType'), txCategory=$('txCategory'), txAmount=$('txAmount'), txNote=$('txNote'), txMsg=$('txMsg');
@@ -224,36 +205,16 @@ const btnExportCSV=$('btnExportCSV'), btnExportPDF=$('btnExportPDF'), btnPrint=$
 
 /* =============== State/Utils =============== */
 let currentUser=null, unsubscribe=null, txCache=[], chart=null;
+const DEFAULT_COMPANY='บริษัท รับทรัพย์โชคทวีจำกัด';
 const pad2=n=>String(n).padStart(2,'0');
 const fmtBaht=n=>'฿'+(Number(n||0)).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const toLocalDateTimeInput=d=>{const t=new Date(d);return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}T${pad2(t.getHours())}:${pad2(t.getMinutes())}`};
 const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);return{start:new Date(y,m-1,1,0,0,0,0),end:new Date(y,m,1,0,0,0,0)}};
-// support Thai names in path: replace spaces and block invalid chars
 const sanitizeId=s=>(s||'default').trim().replace(/[\/#?\[\]]/g,'-').replace(/\s+/g,'-');
-
-/* =============== Company name: load/edit/sync =============== */
-function getQueryCompany(){
-  const p=new URLSearchParams(location.search).get('company');
-  return p ? decodeURIComponent(p) : null;
-}
-const DEFAULT_COMPANY='บริษัท รับทรัพย์โชคทวีจำกัด';
-function setCompanyName(name){
-  const n=(name||'').trim()||DEFAULT_COMPANY;
-  companyTitle.textContent=n;
-  localStorage.setItem('companyNameTitle', n);
-  document.title=`${n} — Financial Dashboard`;
-  if(companyName && (!companyName.value || companyName.value===DEFAULT_COMPANY)) companyName.value=n;
-  dashboardTitle.textContent=`Financial Dashboard — ${n}`;
-}
-setCompanyName(getQueryCompany() || localStorage.getItem('companyNameTitle') || DEFAULT_COMPANY);
-companyTitle.addEventListener('click', ()=>{
-  const v=prompt('ตั้งชื่อบริษัทใหม่', companyTitle.textContent.trim());
-  if(v!==null){ setCompanyName(v); localStorage.setItem('companyName', v); }
-});
 
 /* =============== Firestore path =============== */
 function getTxCollectionRef(){
-  const comp=sanitizeId(companyName.value);
+  const comp=sanitizeId(companyName.value || DEFAULT_COMPANY);
   return db.collection('users').doc(currentUser.uid).collection('companies').doc(comp).collection('transactions');
 }
 
@@ -267,10 +228,9 @@ auth.onAuthStateChanged(user=>{
     userBadge.textContent=user.displayName||user.email;
     loginSection.classList.add('hidden'); dashboard.classList.remove('hidden');
 
-    const defaultCompany=localStorage.getItem('companyNameTitle')||DEFAULT_COMPANY;
-    companyName.value=localStorage.getItem('companyName')||defaultCompany;
-    monthPicker.value=localStorage.getItem('monthPicker')||new Date().toISOString().slice(0,7);
-    dashboardTitle.textContent=`Financial Dashboard — ${companyName.value}`;
+    companyName.value=localStorage.getItem('companyName') || DEFAULT_COMPANY;
+    monthPicker.value=localStorage.getItem('monthPicker') || new Date().toISOString().slice(0,7);
+    dashboardTitle.textContent='Financial Dashboard';
     txDate.value=toLocalDateTimeInput(new Date());
     applyAndListen();
   }else{
@@ -278,12 +238,8 @@ auth.onAuthStateChanged(user=>{
   }
 });
 
-/* live sync title when input changed in dashboard */
-companyName?.addEventListener('input', ()=>{
-  const n=(companyName.value||'').trim()||DEFAULT_COMPANY;
-  dashboardTitle.textContent=`Financial Dashboard — ${n}`;
-  localStorage.setItem('companyNameTitle', n);
-});
+/* เมื่อแก้ชื่อบริษัทในแดชบอร์ด เก็บไว้ใช้ครั้งต่อไป */
+companyName?.addEventListener('input', ()=> localStorage.setItem('companyName', companyName.value.trim()) );
 
 /* =============== Load / Realtime =============== */
 btnApply.addEventListener('click', applyAndListen);
@@ -307,9 +263,9 @@ function applyAndListen(){
 /* =============== Add transaction =============== */
 txForm.addEventListener('submit', async e=>{
   e.preventDefault(); if(!currentUser) return;
-  const data={ uid:currentUser.uid, company:companyName.value.trim(), type:txType.value, category:txCategory.value,
-    amount:Number(txAmount.value||0), note:txNote.value.trim(), date:new Date(txDate.value),
-    createdAt:new Date(), createdBy:currentUser.email||currentUser.uid };
+  const data={ uid:currentUser.uid, company:companyName.value.trim()||DEFAULT_COMPANY, type:txType.value,
+    category:txCategory.value, amount:Number(txAmount.value||0), note:txNote.value.trim(),
+    date:new Date(txDate.value), createdAt:new Date(), createdBy:currentUser.email||currentUser.uid };
   txMsg.textContent='...กำลังบันทึก';
   try{
     await getTxCollectionRef().add(data);
@@ -381,7 +337,7 @@ function toCSV(){
     const date=[d.getFullYear(),pad2(d.getMonth()+1),pad2(d.getDate())].join('-');
     const time=[pad2(d.getHours()),pad2(d.getMinutes())].join(':');
     lines.push([
-      `"${(companyName.value||'').replace(/"/g,'""')}"`,
+      `"${(companyName.value||DEFAULT_COMPANY).replace(/"/g,'""')}"`,
       start.toISOString(), end.toISOString(), date, time, r.type,
       `"${(r.category||'').replace(/"/g,'""')}"`,
       Number(r.amount||0), `"${(r.note||'').replace(/"/g,'""')}"`, `"${(r.createdBy||'').replace(/"/g,'""')}"`
@@ -389,7 +345,7 @@ function toCSV(){
   }); return lines.join('\n');
 }
 function download(filename,text,type='text/plain'){ const blob=new Blob([text],{type}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url); }
-btnExportCSV.addEventListener('click', ()=> download(`export_${sanitizeId(companyName.value)}_${monthPicker.value}.csv`, toCSV(), 'text/csv;charset=utf-8'));
+btnExportCSV.addEventListener('click', ()=> download(`export_${(companyName.value||'company').replace(/\s+/g,'-')}_${monthPicker.value}.csv`, toCSV(), 'text/csv;charset=utf-8'));
 btnExportPDF.addEventListener('click', ()=> openPrintable(true));
 btnPrint.addEventListener('click', ()=> openPrintable(false));
 
@@ -410,7 +366,7 @@ function openPrintable(saveAsPDF){
       <td>${r.note||''}</td>
     </tr>`;
   }).join('');
-  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>Report — ${companyName.value||'-'}</title>
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>Report — ${(companyName.value||DEFAULT_COMPANY)}</title>
 <style>
 body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;padding:24px}
 table{width:100%;border-collapse:collapse;margin-top:16px}
@@ -419,7 +375,7 @@ th{background:#f6f6f6}
 .right{text-align:right}
 </style></head><body>
 <h2>สรุปรายรับ-รายจ่าย</h2>
-<div>บริษัท: <b>${companyName.value||'-'}</b> • รอบบัญชี: ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}</div>
+<div>บริษัท: <b>${companyName.value||DEFAULT_COMPANY}</b> • รอบบัญชี: ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}</div>
 <table>
   <thead><tr><th>วันที่</th><th>เวลา</th><th>ประเภท</th><th>หมวด</th><th class="right">จำนวนเงิน</th><th>หมายเหตุ</th></tr></thead>
   <tbody>${rows || '<tr><td colspan="6">ไม่มีข้อมูล</td></tr>'}</tbody>
