@@ -5,21 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>บริษัท รับทรัพย์โชคทวีจำกัด — Financial Dashboard</title>
 
-  <!-- Minimal modern UI -->
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.0.6/css/pico.min.css">
-
   <style>
     :root{ --glass: rgba(255,255,255,.08); }
     body{ background:#0b1020; }
-
     .hidden{ display:none!important }
     .badge{ padding:.25rem .5rem; border-radius:999px; background:rgba(255,255,255,.1); font-size:.75rem }
-    .mono{ font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace }
+    .mono{ font-variant-numeric: tabular-nums; font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace }
     .positive{ color:#16a34a; font-weight:600 } .negative{ color:#dc2626; font-weight:600 }
     .pill{ border:1px solid var(--pico-muted-border-color); border-radius:999px; padding:.4rem .75rem }
     .table-wrap{ overflow:auto; max-height:50vh }
 
-    /* ===== Login screen (center only: ชื่อบริษัท + ปุ่ม) ===== */
+    /* ===== Login (ชื่อบริษัท + ปุ่ม) ===== */
     .login-screen{
       min-height:100dvh; display:grid; place-items:center;
       background:
@@ -34,31 +31,21 @@
       background:rgba(15,23,42,.9); border:1px solid var(--glass);
       box-shadow:0 20px 40px rgba(2,6,23,.6); color:#e5e7eb; text-align:center;
     }
-
-    /* ชื่อบริษัท: สีขาว ขอบดำ และบรรทัดเดียว */
+    /* ชื่อบริษัท: สีขาว ขอบดำ บรรทัดเดียว */
     .company-name{
-      margin:.25rem 0 10px 0; font-weight:800;
+      margin:.25rem 0 12px 0; font-weight:800;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
       font-size:clamp(22px, 3.6vw, 30px);
-
-      /* ขาวขอบดำ */
-      -webkit-text-fill-color:#fff;
-      -webkit-text-stroke:1.6px #000;
-      color:#fff;
-      text-shadow:
-        -1px -1px 0 #000,
-         1px -1px 0 #000,
-        -1px  1px 0 #000,
-         1px  1px 0 #000;
+      -webkit-text-fill-color:#fff; -webkit-text-stroke:1.6px #000; color:#fff;
+      text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+      cursor:pointer;
     }
-
-    /* ปุ่ม SIGN IN WITH GOOGLE: พื้นดำ ขอบขาว */
+    /* ปุ่ม Google: พื้นดำ ขอบขาว */
     .btn-google{
       all: unset;
-      display: inline-flex; align-items: center; justify-content: center; gap:.6rem;
-      padding: .95rem 1.2rem;
-      background:#000; color:#fff; border:2px solid #fff; border-radius:12px;
-      font-weight:800; letter-spacing:.3px; text-transform:none;
+      display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
+      padding:.95rem 1.2rem; background:#000; color:#fff;
+      border:2px solid #fff; border-radius:12px; font-weight:800; letter-spacing:.3px;
       cursor:pointer; user-select:none;
     }
     .btn-google:hover{ opacity:.9; }
@@ -77,8 +64,8 @@
 <!-- ======================= LOGIN ======================= -->
 <section id="loginSection" class="login-screen">
   <article class="login-card">
-    <!-- ไม่มีโลโก้/กล่องสี่เหลี่ยมด้านบนตามที่ขอ -->
-    <h2 class="company-name">บริษัท รับทรัพย์โชคทวีจำกัด</h2>
+    <!-- ไม่มีกล่องโลโก้ด้านบน -->
+    <h2 id="companyTitle" class="company-name" title="คลิกเพื่อเปลี่ยนชื่อบริษัท"></h2>
     <button id="btnSignIn" class="btn-google">
       <img class="gmark" alt="Google" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
       SIGN IN WITH GOOGLE
@@ -90,7 +77,7 @@
 <main id="dashboard" class="container app-shell hidden">
   <header class="grid" style="align-items:center">
     <div>
-      <h1 style="margin-bottom:.25rem">Financial Dashboard — บริษัท รับทรัพย์โชคทวีจำกัด</h1>
+      <h1 id="dashboardTitle" style="margin-bottom:.25rem">Financial Dashboard — </h1>
       <small>บันทึกรายรับ-รายจ่าย • Export สำหรับยื่นบัญชี • Realtime ด้วย Firebase</small>
     </div>
     <div style="display:flex; gap:.5rem; justify-content:flex-end; align-items:center">
@@ -194,122 +181,128 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <script>
-/* ================= Firebase ================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo",
-  authDomain: "financial-dashboard-3d5dc.firebaseapp.com",
-  projectId: "financial-dashboard-3d5dc",
-};
+/* =============== Firebase =============== */
+const firebaseConfig={ apiKey:"AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo", authDomain:"financial-dashboard-3d5dc.firebaseapp.com", projectId:"financial-dashboard-3d5dc" };
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db   = firebase.firestore();
+const auth=firebase.auth(), db=firebase.firestore();
 
-/* ================= Refs ================= */
+/* =============== Refs =============== */
 const $=id=>document.getElementById(id);
 const loginSection=$('loginSection'), dashboard=$('dashboard');
 const btnSignIn=$('btnSignIn'), btnSignOut=$('btnSignOut'), userBadge=$('userBadge');
+const companyTitle=$('companyTitle'), dashboardTitle=$('dashboardTitle');
 const companyName=$('companyName'), monthPicker=$('monthPicker'), btnApply=$('btnApply');
 const kpiIncome=$('kpiIncome'), kpiExpense=$('kpiExpense'), kpiNet=$('kpiNet'), periodLabel=$('periodLabel');
 const txForm=$('txForm'), txDate=$('txDate'), txType=$('txType'), txCategory=$('txCategory'), txAmount=$('txAmount'), txNote=$('txNote'), txMsg=$('txMsg');
 const txBody=$('txBody'), countLabel=$('countLabel'), searchBox=$('searchBox');
 const btnExportCSV=$('btnExportCSV'), btnExportPDF=$('btnExportPDF'), btnPrint=$('btnPrint');
 
-/* ================= State / Utils ================= */
+/* =============== State/Utils =============== */
 let currentUser=null, unsubscribe=null, txCache=[], chart=null;
 const pad2=n=>String(n).padStart(2,'0');
 const fmtBaht=n=>'฿'+(Number(n||0)).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const toLocalDateTimeInput=d=>{const t=new Date(d);return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}T${pad2(t.getHours())}:${pad2(t.getMinutes())}`};
-const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);return {start:new Date(y,m-1,1,0,0,0,0), end:new Date(y,m,1,0,0,0,0)}};
-// รองรับชื่อไทย: กันอักขระ path ต้องห้าม + เว้นวรรคเป็นขีด
+const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);return{start:new Date(y,m-1,1,0,0,0,0),end:new Date(y,m,1,0,0,0,0)}};
+// รองรับไทย: กันอักขระ path ต้องห้าม + เว้นวรรคเป็นขีด
 const sanitizeId=s=>(s||'default').trim().replace(/[\/#?\[\]]/g,'-').replace(/\s+/g,'-');
 
-/* ================= Firestore path ================= */
+/* =============== Company name: load / edit / sync =============== */
+function getQueryCompany(){
+  const p = new URLSearchParams(location.search).get('company');
+  return p ? decodeURIComponent(p) : null;
+}
+const DEFAULT_COMPANY='บริษัท รับทรัพย์โชคทวีจำกัด';
+function setCompanyName(name){
+  const n=(name||'').trim()||DEFAULT_COMPANY;
+  companyTitle.textContent=n;
+  localStorage.setItem('companyNameTitle', n);
+  document.title = `${n} — Financial Dashboard`;
+  if(companyName && (!companyName.value || companyName.value===DEFAULT_COMPANY)) companyName.value=n;
+  dashboardTitle.textContent=`Financial Dashboard — ${n}`;
+}
+setCompanyName(getQueryCompany() || localStorage.getItem('companyNameTitle') || DEFAULT_COMPANY);
+
+// คลิกชื่อเพื่อแก้ทันที
+companyTitle.addEventListener('click', ()=>{
+  const v=prompt('ตั้งชื่อบริษัทใหม่', companyTitle.textContent.trim());
+  if(v!==null){ setCompanyName(v); localStorage.setItem('companyName', v); }
+});
+
+/* =============== Firestore path =============== */
 function getTxCollectionRef(){
   const comp=sanitizeId(companyName.value);
   return db.collection('users').doc(currentUser.uid).collection('companies').doc(comp).collection('transactions');
 }
 
-/* ================= Auth ================= */
-btnSignIn.addEventListener('click', async ()=>{
-  await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-});
-btnSignOut.addEventListener('click', async ()=>{
-  if(unsubscribe){unsubscribe();unsubscribe=null;}
-  await auth.signOut();
-});
+/* =============== Auth =============== */
+btnSignIn.addEventListener('click', async ()=>{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); });
+btnSignOut.addEventListener('click', async ()=>{ if(unsubscribe){unsubscribe();unsubscribe=null;} await auth.signOut(); });
 
 auth.onAuthStateChanged(user=>{
-  currentUser = user || null;
+  currentUser=user||null;
   if(user){
-    userBadge.textContent = user.displayName || user.email;
-    loginSection.classList.add('hidden');
-    dashboard.classList.remove('hidden');
+    userBadge.textContent=user.displayName||user.email;
+    loginSection.classList.add('hidden'); dashboard.classList.remove('hidden');
 
-    // ตั้งค่าค่าเริ่มต้น
-    const defaultCompany='บริษัท รับทรัพย์โชคทวีจำกัด';
-    companyName.value = localStorage.getItem('companyName') || defaultCompany;
-    monthPicker.value = localStorage.getItem('monthPicker') || new Date().toISOString().slice(0,7);
-    txDate.value = toLocalDateTimeInput(new Date());
-
+    const defaultCompany=localStorage.getItem('companyNameTitle')||DEFAULT_COMPANY;
+    companyName.value=localStorage.getItem('companyName')||defaultCompany;
+    monthPicker.value=localStorage.getItem('monthPicker')||new Date().toISOString().slice(0,7);
+    dashboardTitle.textContent=`Financial Dashboard — ${companyName.value}`;
+    txDate.value=toLocalDateTimeInput(new Date());
     applyAndListen();
   }else{
-    dashboard.classList.add('hidden');
-    loginSection.classList.remove('hidden');
+    dashboard.classList.add('hidden'); loginSection.classList.remove('hidden');
   }
 });
 
-/* ================= Load / Realtime ================= */
+/* =============== Sync title when input changes =============== */
+companyName?.addEventListener('input', ()=>{
+  const n=(companyName.value||'').trim()||DEFAULT_COMPANY;
+  dashboardTitle.textContent=`Financial Dashboard — ${n}`;
+  localStorage.setItem('companyNameTitle', n);
+});
+
+/* =============== Load / Realtime =============== */
 btnApply.addEventListener('click', applyAndListen);
 function applyAndListen(){
   if(!currentUser) return;
   localStorage.setItem('companyName', companyName.value.trim());
   localStorage.setItem('monthPicker', monthPicker.value);
 
-  if(unsubscribe){ unsubscribe(); unsubscribe=null; }
+  if(unsubscribe){unsubscribe();unsubscribe=null;}
   const {start,end}=monthRange(monthPicker.value);
-  periodLabel.textContent = `ช่วง ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}`;
+  periodLabel.textContent=`ช่วง ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}`;
 
-  unsubscribe = getTxCollectionRef()
+  unsubscribe=getTxCollectionRef()
     .where('date','>=',start).where('date','<',end).orderBy('date','asc')
     .onSnapshot(snap=>{
-      txCache = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      txCache=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderTable(); renderKPIs(); renderChart();
-    }, err=> alert('โหลดข้อมูลผิดพลาด: '+err.message));
+    }, err=>alert('โหลดข้อมูลผิดพลาด: '+err.message));
 }
 
-/* ================= Add transaction ================= */
-txForm.addEventListener('submit', async (e)=>{
+/* =============== Add transaction =============== */
+txForm.addEventListener('submit', async e=>{
   e.preventDefault(); if(!currentUser) return;
-  const data={
-    uid: currentUser.uid,
-    company: companyName.value.trim(),
-    type: txType.value,
-    category: txCategory.value,
-    amount: Number(txAmount.value||0),
-    note: txNote.value.trim(),
-    date: new Date(txDate.value),
-    createdAt: new Date(),
-    createdBy: currentUser.email || currentUser.uid
-  };
+  const data={ uid:currentUser.uid, company:companyName.value.trim(), type:txType.value, category:txCategory.value,
+    amount:Number(txAmount.value||0), note:txNote.value.trim(), date:new Date(txDate.value),
+    createdAt:new Date(), createdBy:currentUser.email||currentUser.uid };
   txMsg.textContent='...กำลังบันทึก';
   try{
     await getTxCollectionRef().add(data);
     txMsg.textContent='บันทึกแล้ว ✓';
-    txAmount.value=''; txNote.value='';
-    txDate.value=toLocalDateTimeInput(new Date());
-    setTimeout(()=> txMsg.textContent='', 1200);
-  }catch(err){
-    txMsg.textContent='ผิดพลาด: '+err.message;
-  }
+    txAmount.value=''; txNote.value=''; txDate.value=toLocalDateTimeInput(new Date());
+    setTimeout(()=>txMsg.textContent='',1200);
+  }catch(err){ txMsg.textContent='ผิดพลาด: '+err.message; }
 });
 
-/* ================= Table ================= */
+/* =============== Table =============== */
 searchBox.addEventListener('input', renderTable);
 function renderTable(){
   const q=(searchBox.value||'').toLowerCase();
-  const rows=txCache.filter(r=>!q || (r.category||'').toLowerCase().includes(q) || (r.note||'').toLowerCase().includes(q));
-  countLabel.textContent = `${rows.length} รายการ`;
-  txBody.innerHTML = rows.map(r=>{
+  const rows=txCache.filter(r=>!q||(r.category||'').toLowerCase().includes(q)||(r.note||'').toLowerCase().includes(q));
+  countLabel.textContent=`${rows.length} รายการ`;
+  txBody.innerHTML=rows.map(r=>{
     const d=new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
     const amount=(r.type==='expense'?'-':'')+fmtBaht(r.amount);
     return `<tr>
@@ -322,54 +315,40 @@ function renderTable(){
       <td style="text-align:right"><button class="secondary outline" data-del="${r.id}">ลบ</button></td>
     </tr>`;
   }).join('');
-
   [...document.querySelectorAll('[data-del]')].forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       if(!confirm('ต้องการลบรายการนี้?')) return;
-      try{ await getTxCollectionRef().doc(btn.dataset.del).delete(); }
-      catch(err){ alert('ลบไม่ได้: '+err.message); }
+      try{ await getTxCollectionRef().doc(btn.dataset.del).delete(); }catch(err){ alert('ลบไม่ได้: '+err.message); }
     });
   });
 }
 
-/* ================= KPIs ================= */
+/* =============== KPIs =============== */
 function renderKPIs(){
-  const income = txCache.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount||0),0);
-  const expense= txCache.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
-  const net = income - expense;
-  kpiIncome.textContent = fmtBaht(income);
-  kpiExpense.textContent= fmtBaht(expense);
-  kpiNet.textContent     = (net>=0?'':'-')+fmtBaht(Math.abs(net));
+  const income=txCache.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount||0),0);
+  const expense=txCache.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
+  const net=income-expense;
+  kpiIncome.textContent=fmtBaht(income); kpiExpense.textContent=fmtBaht(expense);
+  kpiNet.textContent=(net>=0?'':'-')+fmtBaht(Math.abs(net));
 }
 
-/* ================= Chart ================= */
+/* =============== Chart =============== */
 function renderChart(){
   const {start}=monthRange(monthPicker.value);
-  const days = new Date(start.getFullYear(), start.getMonth()+1, 0).getDate();
-  const labels=[...Array(days)].map((_,i)=> String(i+1));
-  const incomeDaily = Array(days).fill(0);
-  const expenseDaily= Array(days).fill(0);
-
+  const days=new Date(start.getFullYear(), start.getMonth()+1, 0).getDate();
+  const labels=[...Array(days)].map((_,i)=>String(i+1));
+  const incomeDaily=Array(days).fill(0), expenseDaily=Array(days).fill(0);
   txCache.forEach(r=>{
     const d=new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
     const i=d.getDate()-1;
-    if(r.type==='income') incomeDaily[i]+=Number(r.amount||0);
-    else expenseDaily[i]+=Number(r.amount||0);
+    if(r.type==='income') incomeDaily[i]+=Number(r.amount||0); else expenseDaily[i]+=Number(r.amount||0);
   });
-
-  const ctx=document.getElementById('dailyChart');
-  if(chart) chart.destroy();
-  chart=new Chart(ctx,{
-    type:'bar',
-    data:{ labels, datasets:[
-      {label:'รายรับ', data: incomeDaily},
-      {label:'รายจ่าย', data: expenseDaily}
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top'}}, scales:{y:{beginAtZero:true}} }
-  });
+  const ctx=document.getElementById('dailyChart'); if(chart) chart.destroy();
+  chart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'รายรับ',data:incomeDaily},{label:'รายจ่าย',data:expenseDaily}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
 }
 
-/* ================= Export ================= */
+/* =============== Export =============== */
 function toCSV(){
   const {start,end}=monthRange(monthPicker.value);
   const header=['Company','PeriodStart','PeriodEnd','Date','Time','Type','Category','Amount','Note','CreatedBy'];
@@ -382,19 +361,11 @@ function toCSV(){
       `"${(companyName.value||'').replace(/"/g,'""')}"`,
       start.toISOString(), end.toISOString(), date, time, r.type,
       `"${(r.category||'').replace(/"/g,'""')}"`,
-      Number(r.amount||0),
-      `"${(r.note||'').replace(/"/g,'""')}"`,
-      `"${(r.createdBy||'').replace(/"/g,'""')}"`
+      Number(r.amount||0), `"${(r.note||'').replace(/"/g,'""')}"`, `"${(r.createdBy||'').replace(/"/g,'""')}"`
     ].join(','));
-  });
-  return lines.join('\n');
+  }); return lines.join('\n');
 }
-function download(filename,text,type='text/plain'){
-  const blob=new Blob([text],{type});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=filename; a.click();
-  URL.revokeObjectURL(url);
-}
+function download(filename,text,type='text/plain'){ const blob=new Blob([text],{type}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url); }
 btnExportCSV.addEventListener('click', ()=> download(`export_${sanitizeId(companyName.value)}_${monthPicker.value}.csv`, toCSV(), 'text/csv;charset=utf-8'));
 btnExportPDF.addEventListener('click', ()=> openPrintable(true));
 btnPrint.addEventListener('click', ()=> openPrintable(false));
@@ -406,7 +377,7 @@ function openPrintable(saveAsPDF){
   const net=income-expense;
   const rows=txCache.map(r=>{
     const d=new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
-    const sign=r.type==='expense' ? '-' : '';
+    const sign=r.type==='expense'?'-':'';
     return `<tr>
       <td>${d.toLocaleDateString('th-TH')}</td>
       <td>${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</td>
@@ -416,8 +387,7 @@ function openPrintable(saveAsPDF){
       <td>${r.note||''}</td>
     </tr>`;
   }).join('');
-
-  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>Report — บริษัท รับทรัพย์โชคทวีจำกัด</title>
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>Report — ${companyName.value||'-'}</title>
 <style>
 body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;padding:24px}
 table{width:100%;border-collapse:collapse;margin-top:16px}
@@ -438,9 +408,7 @@ th{background:#f6f6f6}
 </table>
 <script>window.addEventListener('load',()=>{ ${saveAsPDF ? 'window.print();' : ''} });<\/script>
 </body></html>`;
-
-  const w=window.open("","_blank","width=900,height=700");
-  w.document.open(); w.document.write(html); w.document.close();
+  const w=window.open("","_blank","width=900,height=700"); w.document.open(); w.document.write(html); w.document.close();
 }
 </script>
 </body>
