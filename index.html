@@ -98,7 +98,7 @@
     </div>
   </header>
 
-  <!-- Controls (ลบ 4 กล่องขวาออกแล้ว) -->
+  <!-- Controls (ไม่มี 4 ปุ่มขวาแล้ว) -->
   <section class="app-surface">
     <div class="grid">
       <div>
@@ -128,6 +128,54 @@
     </div>
   </section>
 
+  <!-- กล่องเพิ่มรายละเอียด (ใหม่) -->
+  <section>
+    <article class="card-inset">
+      <h3 style="margin-top:0">เพิ่มรายละเอียดรายการ</h3>
+      <form id="detailForm">
+        <div class="grid">
+          <label>วันที่-เวลา
+            <input id="detDate" type="datetime-local" required>
+          </label>
+          <label>รหัส (Order/Doc ID)
+            <input id="detOrderCode" type="text" placeholder="เช่น ORD-1234">
+          </label>
+          <label>เลขรหัส (Tracking/Ref)
+            <input id="detRefNumber" type="text" placeholder="เช่น TRK-0001">
+          </label>
+          <label>ราคา
+            <input id="detPrice" type="number" step="0.01" min="0" required>
+          </label>
+          <label>ค่าส่ง
+            <input id="detShipping" type="number" step="0.01" min="0" value="0">
+          </label>
+          <label>ชื่อสินค้า
+            <input id="detProduct" type="text" placeholder="ชื่อสินค้า/บริการ">
+          </label>
+          <label>ประเภท
+            <select id="detType" required>
+              <option value="income">รายรับ</option>
+              <option value="expense">รายจ่าย</option>
+            </select>
+          </label>
+          <label id="detExpenseWrap" class="hidden">ประเภทรายจ่ายย่อย
+            <select id="detExpenseSubtype">
+              <option value="ads">ค่าโฆษณา</option>
+              <option value="shipping">ค่าขนส่ง</option>
+              <option value="laundry">ค่าซักอบ</option>
+              <option value="photo">ค่าจ้างถ่ายภาพ</option>
+            </select>
+          </label>
+        </div>
+        <label>หมายเหตุ
+          <input id="detNote" type="text" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)">
+        </label>
+        <div id="detMsg" class="pill" style="display:inline-block"></div>
+        <button id="detSave" type="submit" class="primary" style="margin-top:.5rem">บันทึก</button>
+      </form>
+    </article>
+  </section>
+
   <!-- Chart -->
   <section>
     <article class="card-inset">
@@ -136,42 +184,24 @@
     </article>
   </section>
 
-  <!-- Add transaction (แบบเดิม) -->
-  <section>
-    <article class="card-inset">
-      <h3 style="margin-top:0">บันทึกรายการใหม่</h3>
-      <form id="txForm">
-        <div class="grid">
-          <label>วันที่-เวลา <input id="txDate" type="datetime-local" required></label>
-          <label>ประเภท
-            <select id="txType" required><option value="income">รายรับ</option><option value="expense">รายจ่าย</option></select>
-          </label>
-          <label>หมวดหมู่
-            <select id="txCategory" required>
-              <option>Sales</option><option>Service</option><option>Salary</option>
-              <option>Rent</option><option>Utilities</option><option>Supplies</option><option>Other</option>
-            </select>
-          </label>
-          <label>จำนวนเงิน (บาท) <input id="txAmount" type="number" step="0.01" min="0" required></label>
-        </div>
-        <label>หมายเหตุ <input id="txNote" type="text" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"></label>
-        <div class="pill" id="txMsg" style="display:inline-block"></div>
-        <button type="submit" class="primary" style="margin-top:.5rem">บันทึก</button>
-      </form>
-    </article>
-  </section>
-
   <!-- Table -->
   <section>
     <article class="card-inset">
       <header class="grid">
         <div><h3 style="margin:0">รายการเดือนนี้</h3><small id="countLabel" class="muted">0 รายการ</small></div>
-        <div style="display:flex;justify-content:flex-end"><input id="searchBox" class="pill" placeholder="ค้นหา: หมวด/หมายเหตุ…"></div>
+        <div style="display:flex;justify-content:flex-end"><input id="searchBox" class="pill" placeholder="ค้นหา: สินค้า/รหัส/หมายเหตุ…"></div>
       </header>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>วันที่</th><th>เวลา</th><th>ประเภท</th><th>หมวด</th><th style="text-align:right">จำนวนเงิน</th><th>หมายเหตุ</th><th></th></tr>
+            <tr>
+              <th>วันที่</th><th>เวลา</th><th>ประเภท</th>
+              <th>ชื่อสินค้า</th><th class="right">ราคา</th><th class="right">ค่าส่ง</th>
+              <th>ประเภทย่อย</th>
+              <th>รหัส</th><th>เลขรหัส</th>
+              <th class="right">รวม</th>
+              <th>หมายเหตุ</th><th></th>
+            </tr>
           </thead>
           <tbody id="txBody"></tbody>
         </table>
@@ -208,8 +238,12 @@ const companyInline=$('companyInline'), companyInlineEn=$('companyInlineEn');
 const companyName=$('companyName'), companyNameEn=$('companyNameEn');
 const monthPicker=$('monthPicker');
 const kpiIncome=$('kpiIncome'), kpiExpense=$('kpiExpense'), kpiNet=$('kpiNet'), periodLabel=$('periodLabel');
-const txForm=$('txForm'), txDate=$('txDate'), txType=$('txType'), txCategory=$('txCategory'), txAmount=$('txAmount'), txNote=$('txNote'), txMsg=$('txMsg');
-const txBody=$('txBody'), countLabel=$('countLabel'), searchBox=$('searchBox');
+const searchBox=$('searchBox'), txBody=$('txBody'), countLabel=$('countLabel');
+/* Detail form */
+const detailForm=$('detailForm'), detDate=$('detDate'), detOrderCode=$('detOrderCode'), detRefNumber=$('detRefNumber'),
+      detPrice=$('detPrice'), detShipping=$('detShipping'), detProduct=$('detProduct'),
+      detType=$('detType'), detExpenseWrap=$('detExpenseWrap'), detExpenseSubtype=$('detExpenseSubtype'),
+      detNote=$('detNote'), detMsg=$('detMsg');
 
 /* ================= State/Utils ================= */
 let currentUser=null, unsubscribe=null, txCache=[], chart=null;
@@ -220,6 +254,12 @@ const fmtBaht=n=>'฿'+(Number(n||0)).toLocaleString('th-TH',{minimumFractionDig
 const toLocalDateTimeInput=d=>{const t=new Date(d);return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}T${pad2(t.getHours())}:${pad2(t.getMinutes())}`};
 const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);return{start:new Date(y,m-1,1,0,0,0,0),end:new Date(y,m,1,0,0,0,0)}};
 const sanitizeId=s=>(s||'default').trim().replace(/[\/#?\[\]]/g,'-').replace(/\s+/g,'-');
+
+/* Helpers: read values with fallback to legacy 'amount' */
+const num = v => Number(v||0);
+const priceOf = r => ('price' in r ? num(r.price) : num(r.amount));
+const shipOf  = r => ('shippingCost' in r ? num(r.shippingCost) : 0);
+const totalSigned = r => (r.type==='expense' ? -(priceOf(r)+shipOf(r)) : priceOf(r));
 
 /* ===== Company Name binding ===== */
 function setCompanyName(th,en){
@@ -238,20 +278,14 @@ companyNameEn.addEventListener('input',()=>setCompanyName(companyName.value,comp
 
 /* ================= Auth ================= */
 btnSignIn.addEventListener('click', async ()=>{
-  try{
-    await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-  }catch(e){
+  try{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+  catch(e){
     if(e?.code==='auth/unauthorized-domain'){
       alert('ยังไม่ได้เพิ่มโดเมนนี้ใน Firebase:\nFirebase Console → Authentication → Settings → Authorized domains → Add domain → ' + location.host);
-    }else{
-      alert('ล็อกอินไม่สำเร็จ: ' + (e?.message||e));
-    }
+    }else{ alert('ล็อกอินไม่สำเร็จ: ' + (e?.message||e)); }
   }
 });
-btnSignOut.addEventListener('click', async ()=>{
-  if(unsubscribe){unsubscribe();unsubscribe=null;}
-  await auth.signOut();
-});
+btnSignOut.addEventListener('click', async ()=>{ if(unsubscribe){unsubscribe();unsubscribe=null;} await auth.signOut(); });
 
 auth.onAuthStateChanged(user=>{
   currentUser=user||null;
@@ -262,11 +296,9 @@ auth.onAuthStateChanged(user=>{
     companyName.value = localStorage.getItem('companyNameTH') || DEFAULT_COMPANY_TH;
     companyNameEn.value = localStorage.getItem('companyNameEN') || DEFAULT_COMPANY_EN;
     monthPicker.value = localStorage.getItem('monthPicker') || new Date().toISOString().slice(0,7);
-    companyInline.textContent = companyName.value;
-    companyInlineEn.textContent = (companyNameEn.value||DEFAULT_COMPANY_EN).toUpperCase();
-    txDate.value = toLocalDateTimeInput(new Date());
+    detDate.value = toLocalDateTimeInput(new Date());
 
-    applyAndListen(); // โหลดข้อมูลอัตโนมัติ
+    applyAndListen(); // auto load
   }else{
     dashboard.classList.add('hidden'); loginSection.classList.remove('hidden');
   }
@@ -302,43 +334,70 @@ function applyAndListen(){
     });
 }
 
-/* ================= Add transaction ================= */
-txForm.addEventListener('submit', async e=>{
+/* ================= Detail form logic ================= */
+detType.addEventListener('change', ()=>{
+  if(detType.value==='expense'){ detExpenseWrap.classList.remove('hidden'); }
+  else{ detExpenseWrap.classList.add('hidden'); detExpenseSubtype.value='ads'; }
+});
+
+/* Submit save */
+detailForm.addEventListener('submit', async (e)=>{
   e.preventDefault(); if(!currentUser) return;
   const data={
     uid:currentUser.uid,
-    companyTH:companyName.value.trim()||DEFAULT_COMPANY_TH,
-    companyEN:(companyNameEn.value.trim()||DEFAULT_COMPANY_EN).toUpperCase(),
-    type:txType.value, category:txCategory.value,
-    amount:Number(txAmount.value||0), note:txNote.value.trim(),
-    date:new Date(txDate.value), createdAt:new Date(),
-    createdBy:currentUser.email||currentUser.uid
+    companyTH:companyInline.textContent, companyEN:companyInlineEn.textContent,
+    date:new Date(detDate.value),
+    orderCode: (detOrderCode.value||'').trim(),
+    refNumber: (detRefNumber.value||'').trim(),
+    productName:(detProduct.value||'').trim(),
+    price: num(detPrice.value),
+    shippingCost: num(detShipping.value),
+    type: detType.value, // 'income' | 'expense'
+    expenseSubtype: detType.value==='expense' ? detExpenseSubtype.value : '',
+    note:(detNote.value||'').trim(),
+    createdAt:new Date(), createdBy: currentUser.email||currentUser.uid
   };
-  txMsg.textContent='...กำลังบันทึก';
+  // basic validation
+  if(!data.date || isNaN(data.price)){ detMsg.textContent='กรอกวันที่และราคาถูกต้องก่อน'; return; }
+
+  detMsg.textContent='...กำลังบันทึก';
   try{
     await getTxCollectionRef().add(data);
-    txMsg.textContent='บันทึกแล้ว ✓';
-    txAmount.value=''; txNote.value=''; txDate.value=toLocalDateTimeInput(new Date());
-    setTimeout(()=>txMsg.textContent='',1200);
-  }catch(err){ txMsg.textContent='ผิดพลาด: '+err.message; }
+    detMsg.textContent='บันทึกแล้ว ✓';
+    // reset some fields
+    detOrderCode.value=''; detRefNumber.value=''; detProduct.value=''; detNote.value='';
+    detPrice.value=''; detShipping.value='0'; detType.value='income'; detExpenseWrap.classList.add('hidden');
+    detDate.value = toLocalDateTimeInput(new Date());
+    setTimeout(()=>detMsg.textContent='',1200);
+  }catch(err){ detMsg.textContent='ผิดพลาด: '+err.message; }
 });
 
 /* ================= Table ================= */
 searchBox.addEventListener('input', renderTable);
 function renderTable(){
   const q=(searchBox.value||'').toLowerCase();
-  const rows=txCache.filter(r=>!q||(r.category||'').toLowerCase().includes(q)||(r.note||'').toLowerCase().includes(q));
+  const rows=txCache.filter(r=>{
+    const hay=[r.productName,r.orderCode,r.refNumber,r.note,r.category].map(x=>(x||'').toLowerCase()).join(' ');
+    return !q || hay.includes(q);
+  });
   countLabel.textContent=`${rows.length} รายการ`;
   txBody.innerHTML=rows.map(r=>{
     const d=new Date(r.date?.seconds ? r.date.seconds*1000 : r.date);
-    const amount=(r.type==='expense'?'-':'')+fmtBaht(r.amount);
+    const price=priceOf(r), ship=shipOf(r);
+    const total = (r.type==='expense' ? -(price+ship) : price);
+    const subtype = (r.type==='expense' && r.expenseSubtype) ? r.expenseSubtype : '';
     return `<tr>
       <td>${d.toLocaleDateString('th-TH')}</td>
       <td>${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</td>
       <td>${r.type==='income'?'รายรับ':'รายจ่าย'}</td>
-      <td>${r.category||''}</td>
-      <td style="text-align:right" class="mono ${r.type==='income'?'positive':'negative'}">${amount}</td>
-      <td>${(r.note||'')}</td>
+      <td>${r.productName||''}</td>
+      <td class="right mono">${fmtBaht(price)}</td>
+      <td class="right mono">${ship?fmtBaht(ship):'-'}</td>
+      <td>${subtype||'-'}</td>
+      <td>${r.orderCode||''}</td>
+      <td>${r.refNumber||''}</td>
+      <td class="right mono ${total>=0?'positive':'negative'}">${total>=0?'':'-'}${fmtBaht(Math.abs(total))}</td>
+      <td>${r.note||''}</td>
       <td style="text-align:right"><button class="secondary outline" data-del="${r.id}">ลบ</button></td>
     </tr>`;
   }).join('');
@@ -353,9 +412,12 @@ function renderTable(){
 
 /* ================= KPIs ================= */
 function renderKPIs(){
-  const income=txCache.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount||0),0);
-  const expense=txCache.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
-  const net=income-expense;
+  let income=0, expense=0;
+  txCache.forEach(r=>{
+    if(r.type==='income'){ income += priceOf(r); }
+    else{ expense += (priceOf(r) + shipOf(r)); }
+  });
+  const net = income - expense;
   kpiIncome.textContent=fmtBaht(income);
   kpiExpense.textContent=fmtBaht(expense);
   kpiNet.textContent=(net>=0?'':'-')+fmtBaht(Math.abs(net));
@@ -371,11 +433,9 @@ function renderChart(){
 
   txCache.forEach(r=>{
     const d=new Date(r.date?.seconds ? r.date.seconds*1000 : r.date);
-    const i=d.getDate()-1;
-    if(i>=0 && i<daysInMonth){
-      if(r.type==='income') incomeDaily[i]+=Number(r.amount||0);
-      else expenseDaily[i]+=Number(r.amount||0);
-    }
+    const i=d.getDate()-1; if(i<0||i>=daysInMonth) return;
+    if(r.type==='income') incomeDaily[i]+=priceOf(r);
+    else expenseDaily[i]+=(priceOf(r)+shipOf(r));
   });
 
   const ctx=document.getElementById('dailyChart');
