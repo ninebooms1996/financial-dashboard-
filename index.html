@@ -15,7 +15,7 @@
     .pill{ border:1px solid var(--pico-muted-border-color); border-radius:999px; padding:.4rem .75rem }
     .table-wrap{ overflow:auto; max-height:50vh }
 
-    /* ===== Login center ===== */
+    /* ===== Login screen (center) ===== */
     .login-screen{
       min-height:100dvh; display:grid; place-items:center;
       background:
@@ -30,28 +30,28 @@
       background:rgba(15,23,42,.9); border:1px solid var(--glass);
       box-shadow:0 20px 40px rgba(2,6,23,.6); color:#e5e7eb; text-align:center;
     }
+    /* กล่องโลโก้เหนือชื่อบริษัท — พื้นดำ ขอบขาว */
     .brand-logo{
-      width:56px;height:56px;border-radius:16px; margin:0 auto 12px auto;
-      background:linear-gradient(135deg,#0ea5e9,#6366f1);
-      box-shadow:0 10px 30px rgba(14,165,233,.28), inset 0 0 30px rgba(255,255,255,.15);
+      width:68px;height:68px;border-radius:16px; margin:0 auto 12px auto;
+      background:#000; border:2px solid #fff; display:grid; place-items:center;
     }
     .company-name{
-      margin:.25rem 0 0 0;
-      white-space: nowrap;              /* บังคับให้ขึ้นบรรทัดเดียว */
-      overflow: hidden; text-overflow: ellipsis;
-      font-weight:700;
-      font-size: clamp(20px, 3.5vw, 28px); /* ปรับขนาดอัตโนมัติให้พอดีการ์ด */
+      margin:.25rem 0 0 0; font-weight:700;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; /* บังคับ 1 บรรทัด */
+      font-size: clamp(20px, 3.4vw, 28px);
     }
-    .btn-google{
-      width:100%; display:flex; gap:.6rem; align-items:center; justify-content:center;
-      background:#111827; color:#e5e7eb; border:1px solid rgba(255,255,255,.1);
-      padding:1rem 1.1rem; border-radius:12px; font-weight:700; /* เอา lowercase ออก */
-      text-transform:none;
-    }
-    .btn-google:hover{ background:#0b1324; }
+
+    /* ===== Google button: มี 2 สไตล์ ให้ JS เลือก ===== */
+    .btn-google{ all:unset; display:inline-flex; align-items:center; justify-content:center;
+      gap:.6rem; cursor:pointer; user-select:none; font-weight:800; letter-spacing:.3px; color:#e5e7eb; }
     .gmark{ width:18px;height:18px; }
-    .links{ display:flex; justify-content:space-between; margin-top:.9rem }
-    .links a{ color:#a5b4fc; text-decoration:none } .links a:hover{ text-decoration:underline }
+    /* (A) แบบลิงก์ (ไร้กรอบ/พื้น) */
+    .btn-google--link{ padding:.25rem .5rem; border-radius:8px; }
+    .btn-google--link:hover{ text-decoration:underline; }
+    /* (B) แบบพื้นดำ ขอบขาว */
+    .btn-google--bw{ padding:.9rem 1.1rem; background:#000; color:#fff; border:2px solid #fff; border-radius:12px; }
+    .btn-google--bw:hover{ opacity:.9; }
+    .btn-google:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
 
     /* ===== Dashboard look ===== */
     .app-shell{ max-width:1100px }
@@ -62,17 +62,16 @@
 </head>
 <body>
 
-<!-- ======================= LOGIN CENTER ======================= -->
+<!-- ======================= LOGIN ======================= -->
 <section id="loginSection" class="login-screen">
   <article class="login-card">
-    <div class="brand-logo"></div>
+    <div class="brand-logo"><!-- วางโลโก้จริงได้ โดยแทนเป็น <img src="logo.png" class="brand-logo"> --></div>
     <h2 class="company-name">บริษัท รับทรัพย์โชคทวีจำกัด</h2>
-    <!-- ลบ Secure Finance Portal ตามคำขอ -->
     <button id="btnSignIn" class="btn-google" style="margin-top:14px">
       <img class="gmark" alt="Google" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
-      login via GOOGLE
+      SIGN IN WITH GOOGLE
     </button>
-    <div class="links">
+    <div style="display:flex;justify-content:space-between;margin-top:.9rem">
       <a href="#" onclick="alert('ตัวอย่าง Terms');return false;">Terms</a>
       <a href="#" onclick="alert('ตัวอย่าง Privacy');return false;">Privacy</a>
     </div>
@@ -84,7 +83,7 @@
   <header class="grid" style="align-items:center">
     <div>
       <h1 style="margin-bottom:.25rem">Financial Dashboard — บริษัท รับทรัพย์โชคทวีจำกัด</h1>
-      <small class="muted">บันทึกรายรับ-รายจ่าย • Export สำหรับยื่นบัญชี • Realtime ด้วย Firebase</small>
+      <small>บันทึกรายรับ-รายจ่าย • Export สำหรับยื่นบัญชี • Realtime ด้วย Firebase</small>
     </div>
     <div style="display:flex; gap:.5rem; justify-content:flex-end; align-items:center">
       <span id="userBadge" class="badge hidden"></span>
@@ -97,9 +96,9 @@
     <div class="grid">
       <div>
         <label>ชื่อบริษัท
-          <input id="companyName" type="text" placeholder="เช่น บริษัท เอ บี ซี จำกัด">
+          <input id="companyName" type="text" placeholder="เช่น บริษัท เอ บี ซี จำกัด" />
         </label>
-        <small class="muted">ใช้เป็นชื่อในรายงาน และเป็นแฟ้มใน Firestore</small>
+        <small>ใช้เป็นชื่อในรายงาน และเป็นแฟ้มใน Firestore</small>
       </div>
       <div>
         <label>รอบบัญชี (เดือน)
@@ -176,7 +175,7 @@
   </section>
 
   <footer style="margin:1.5rem 0">
-    <small class="muted">Project: <b>financial dashboard</b> • Project ID: <b>financial-dashboard-3d5dc</b> • Firestore & Auth (Google)</small>
+    <small>Project: <b>financial dashboard</b> • Project ID: <b>financial-dashboard-3d5dc</b> • Firestore & Auth (Google)</small>
   </footer>
 </main>
 
@@ -187,12 +186,12 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
 <script>
-/* -------- Firebase -------- */
+/* ================= Firebase ================= */
 const firebaseConfig={ apiKey:"AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo", authDomain:"financial-dashboard-3d5dc.firebaseapp.com", projectId:"financial-dashboard-3d5dc" };
 firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(); const db=firebase.firestore();
+const auth=firebase.auth(), db=firebase.firestore();
 
-/* -------- Refs -------- */
+/* ================= Refs ================= */
 const $=id=>document.getElementById(id);
 const loginSection=$('loginSection'), dashboard=$('dashboard');
 const btnSignIn=$('btnSignIn'), btnSignOut=$('btnSignOut'), userBadge=$('userBadge');
@@ -202,23 +201,28 @@ const txForm=$('txForm'), txDate=$('txDate'), txType=$('txType'), txCategory=$('
 const txBody=$('txBody'), countLabel=$('countLabel'), searchBox=$('searchBox');
 const btnExportCSV=$('btnExportCSV'), btnExportPDF=$('btnExportPDF'), btnPrint=$('btnPrint');
 
-/* -------- State -------- */
+/* ================= State / Utils ================= */
 let currentUser=null, unsubscribe=null, txCache=[], chart=null;
 
-/* -------- Utils -------- */
 const pad2=n=>String(n).padStart(2,'0');
 const fmtBaht=n=>'฿'+(Number(n||0)).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const toLocalDateTimeInput=d=>{const t=new Date(d);return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}T${pad2(t.getHours())}:${pad2(t.getMinutes())}`};
-const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);const s=new Date(y,m-1,1), e=new Date(y,m,1);return {start:s,end:e}};
+const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);return {start:new Date(y,m-1,1,0,0,0,0), end:new Date(y,m,1,0,0,0,0)}};
+// ใช้อักษรไทย/อังกฤษ/ตัวเลขได้ เปลี่ยนเว้นวรรคเป็นขีด และกันอักขระ path ต้องห้าม
 const sanitizeId=s=>(s||'default').trim().replace(/[\/#?\[\]]/g,'-').replace(/\s+/g,'-');
 
-/* -------- Firestore path -------- */
+/* ================= Button style toggle (เลือกแบบไหน) ================= */
+// 'bw' = ปุ่มพื้นดำขอบขาว, 'link' = ปุ่มแบบลิงก์
+const SIGN_IN_STYLE='bw';
+btnSignIn.classList.add(SIGN_IN_STYLE==='bw' ? 'btn-google--bw' : 'btn-google--link');
+
+/* ================= Firestore path ================= */
 function getTxCollectionRef(){
   const comp=sanitizeId(companyName.value);
   return db.collection('users').doc(currentUser.uid).collection('companies').doc(comp).collection('transactions');
 }
 
-/* -------- Auth -------- */
+/* ================= Auth ================= */
 btnSignIn.addEventListener('click', async ()=>{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); });
 btnSignOut.addEventListener('click', async ()=>{ if(unsubscribe){unsubscribe();unsubscribe=null;} await auth.signOut(); });
 
@@ -227,9 +231,12 @@ auth.onAuthStateChanged(user=>{
   if(user){
     userBadge.textContent=user.displayName||user.email;
     loginSection.classList.add('hidden'); dashboard.classList.remove('hidden');
+
+    // default company name
     const defaultCompany='บริษัท รับทรัพย์โชคทวีจำกัด';
     companyName.value=localStorage.getItem('companyName')||defaultCompany;
     monthPicker.value=localStorage.getItem('monthPicker')||new Date().toISOString().slice(0,7);
+
     txDate.value=toLocalDateTimeInput(new Date());
     applyAndListen();
   }else{
@@ -237,39 +244,44 @@ auth.onAuthStateChanged(user=>{
   }
 });
 
-/* -------- Load & listen -------- */
+/* ================= Load / Realtime ================= */
 btnApply.addEventListener('click', applyAndListen);
 function applyAndListen(){
   if(!currentUser) return;
   localStorage.setItem('companyName', companyName.value.trim());
   localStorage.setItem('monthPicker', monthPicker.value);
+
   if(unsubscribe){unsubscribe();unsubscribe=null;}
   const {start,end}=monthRange(monthPicker.value);
   periodLabel.textContent=`ช่วง ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}`;
+
   unsubscribe=getTxCollectionRef().where('date','>=',start).where('date','<',end).orderBy('date','asc')
     .onSnapshot(snap=>{
-      txCache=snap.docs.map(d=>({id:d.id,...d.data()}));
+      txCache=snap.docs.map(d=>({id:d.id, ...d.data()}));
       renderTable(); renderKPIs(); renderChart();
     }, err=>alert('โหลดข้อมูลผิดพลาด: '+err.message));
 }
 
-/* -------- Add tx -------- */
+/* ================= Add transaction ================= */
 txForm.addEventListener('submit', async e=>{
   e.preventDefault(); if(!currentUser) return;
   const data={ uid:currentUser.uid, company:companyName.value.trim(), type:txType.value, category:txCategory.value,
     amount:Number(txAmount.value||0), note:txNote.value.trim(), date:new Date(txDate.value),
     createdAt:new Date(), createdBy:currentUser.email||currentUser.uid };
   txMsg.textContent='...กำลังบันทึก';
-  try{ await getTxCollectionRef().add(data); txMsg.textContent='บันทึกแล้ว ✓'; txAmount.value=''; txNote.value='';
-       txDate.value=toLocalDateTimeInput(new Date()); setTimeout(()=>txMsg.textContent='',1200);}
-  catch(err){ txMsg.textContent='ผิดพลาด: '+err.message; }
+  try{
+    await getTxCollectionRef().add(data);
+    txMsg.textContent='บันทึกแล้ว ✓';
+    txAmount.value=''; txNote.value=''; txDate.value=toLocalDateTimeInput(new Date());
+    setTimeout(()=> txMsg.textContent='', 1200);
+  }catch(err){ txMsg.textContent='ผิดพลาด: '+err.message; }
 });
 
-/* -------- Table -------- */
+/* ================= Table ================= */
 searchBox.addEventListener('input', renderTable);
 function renderTable(){
   const q=(searchBox.value||'').toLowerCase();
-  const rows=txCache.filter(r=>!q || (r.category||'').toLowerCase().includes(q) || (r.note||'').toLowerCase().includes(q));
+  const rows=txCache.filter(r=>!q||(r.category||'').toLowerCase().includes(q)||(r.note||'').toLowerCase().includes(q));
   countLabel.textContent=`${rows.length} รายการ`;
   txBody.innerHTML=rows.map(r=>{
     const d=new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
@@ -287,21 +299,23 @@ function renderTable(){
   [...document.querySelectorAll('[data-del]')].forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       if(!confirm('ต้องการลบรายการนี้?')) return;
-      try{ await getTxCollectionRef().doc(btn.dataset.del).delete(); }catch(err){ alert('ลบไม่ได้: '+err.message); }
+      try{ await getTxCollectionRef().doc(btn.dataset.del).delete(); }
+      catch(err){ alert('ลบไม่ได้: '+err.message); }
     });
   });
 }
 
-/* -------- KPIs -------- */
+/* ================= KPIs ================= */
 function renderKPIs(){
   const income=txCache.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount||0),0);
   const expense=txCache.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
   const net=income-expense;
-  kpiIncome.textContent=fmtBaht(income); kpiExpense.textContent=fmtBaht(expense);
+  kpiIncome.textContent=fmtBaht(income);
+  kpiExpense.textContent=fmtBaht(expense);
   kpiNet.textContent=(net>=0?'':'-')+fmtBaht(Math.abs(net));
 }
 
-/* -------- Chart -------- */
+/* ================= Chart ================= */
 function renderChart(){
   const {start}=monthRange(monthPicker.value);
   const days=new Date(start.getFullYear(), start.getMonth()+1, 0).getDate();
@@ -310,13 +324,16 @@ function renderChart(){
   txCache.forEach(r=>{
     const d=new Date(r.date.seconds ? r.date.seconds*1000 : r.date);
     const i=d.getDate()-1;
-    if(r.type==='income') incomeDaily[i]+=Number(r.amount||0); else expenseDaily[i]+=Number(r.amount||0);
+    if(r.type==='income') incomeDaily[i]+=Number(r.amount||0);
+    else expenseDaily[i]+=Number(r.amount||0);
   });
-  const ctx=document.getElementById('dailyChart'); if(chart) chart.destroy();
-  chart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'รายรับ',data:incomeDaily},{label:'รายจ่าย',data:expenseDaily}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
+  const ctx=document.getElementById('dailyChart');
+  if(chart) chart.destroy();
+  chart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'รายรับ',data:incomeDaily},{label:'รายจ่าย',data:expenseDaily}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true}}}});
 }
 
-/* -------- Export -------- */
+/* ================= Export ================= */
 function toCSV(){
   const {start,end}=monthRange(monthPicker.value);
   const header=['Company','PeriodStart','PeriodEnd','Date','Time','Type','Category','Amount','Note','CreatedBy'];
@@ -331,7 +348,8 @@ function toCSV(){
       `"${(r.category||'').replace(/"/g,'""')}"`,
       Number(r.amount||0), `"${(r.note||'').replace(/"/g,'""')}"`, `"${(r.createdBy||'').replace(/"/g,'""')}"`
     ].join(','));
-  }); return lines.join('\n');
+  });
+  return lines.join('\n');
 }
 function download(filename,text,type='text/plain'){ const blob=new Blob([text],{type}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url); }
 btnExportCSV.addEventListener('click', ()=> download(`export_${sanitizeId(companyName.value)}_${monthPicker.value}.csv`, toCSV(), 'text/csv;charset=utf-8'));
