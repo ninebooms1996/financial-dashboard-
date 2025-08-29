@@ -13,6 +13,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
 
+  <!-- Favicon (แก้ 404) -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23000'/%3E%3Ctext x='50%25' y='54%25' text-anchor='middle' font-size='34' fill='%23fff'%3E%E0%B8%BF%3C/text%3E%3C/svg%3E">
+
   <style>
     :root{ --glass: rgba(255,255,255,.08); }
     body{ background:#0b1020; font-family:"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
@@ -53,11 +57,11 @@
     .sub-title{
       font-family:"Kanit","Noto Sans Thai",sans-serif;
       margin-top:2px; font-weight:800; letter-spacing:.2px;
-      font-size:clamp(18px,2.6vw,26px);      /* ย่อให้ “พอดี” การ์ด */
+      font-size:clamp(18px,2.6vw,26px);
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
       -webkit-text-fill-color:#fff; -webkit-text-stroke:1px #000; color:#fff;
       text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-      cursor:pointer;                         /* คลิกเพื่อแก้ชื่อได้ */
+      cursor:pointer;
     }
 
     /* ปุ่ม Google: พื้นดำ ขอบขาว */
@@ -253,8 +257,27 @@ function getTxCollectionRef(){
 }
 
 /* ================= Auth ================= */
-btnSignIn.addEventListener('click', async ()=>{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); });
-btnSignOut.addEventListener('click', async ()=>{ if(unsubscribe){unsubscribe();unsubscribe=null;} await auth.signOut(); });
+/* แก้ปุ่มล็อกอินให้แจ้งเมื่อโดเมนยังไม่ถูกอนุญาต */
+btnSignIn.addEventListener('click', async ()=>{
+  try{
+    await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+  }catch(e){
+    if(e && e.code === 'auth/unauthorized-domain'){
+      alert(
+        'ยังไม่ได้เพิ่มโดเมนนี้ใน Firebase\n\n' +
+        'ไปที่ Firebase Console → Authentication → Settings → Authorized domains → Add domain\n' +
+        'แล้วใส่: ' + location.host
+      );
+    }else{
+      alert('ล็อกอินไม่สำเร็จ: ' + (e?.message || e));
+    }
+  }
+});
+
+btnSignOut.addEventListener('click', async ()=>{
+  if(unsubscribe){unsubscribe();unsubscribe=null;}
+  await auth.signOut();
+});
 
 auth.onAuthStateChanged(user=>{
   currentUser=user||null;
@@ -296,7 +319,10 @@ function applyAndListen(){
     .onSnapshot(snap=>{
       txCache=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderTable(); renderKPIs(); renderChart();
-    }, err=>alert('โหลดข้อมูลผิดพลาด: '+err.message));
+    }, err=>{
+      alert('โหลดข้อมูลผิดพลาด: '+err.message+
+        '\n\nถ้าเห็น code 403 ให้ตรวจ Firebase Security Rules/สิทธิ์ Firestore');
+    });
 }
 
 /* ================= Add transaction ================= */
