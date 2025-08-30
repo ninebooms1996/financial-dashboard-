@@ -11,58 +11,57 @@
   <!-- Thai fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
 
+  <!-- Favicon (กัน 404) -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23000'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' font-size='34' fill='%23fff'%3E%E0%B8%BF%3C/text%3E%3C/svg%3E">
+
   <style>
     :root{ --glass: rgba(255,255,255,.1); }
     body{ background:#0b1020; color:#e5e7eb; font-family:"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
-    .container.app-shell{ max-width:1100px }
+    .container.app-shell{ max-width:1100px; padding-inline:14px; }
 
     .hidden{ display:none!important }
     .badge{ padding:.25rem .5rem;border-radius:999px;background:rgba(255,255,255,.12);font-size:.75rem }
     .pill{ border:1px solid var(--pico-muted-border-color); border-radius:999px; padding:.4rem .75rem }
     .mono{ font-variant-numeric:tabular-nums; font-family:ui-monospace,Menlo,Consolas,monospace }
     .positive{ color:#16a34a;font-weight:600 } .negative{ color:#dc2626;font-weight:600 }
-    .app-surface{ background:#0f172a; border:1px solid var(--glass); border-radius:16px; padding:16px 18px }
-    .card-inset{ background:#0b1324; border:1px solid var(--glass); border-radius:16px; padding:12px 14px }
+    .app-surface{ background:#0f172a; border:1px solid var(--glass); border-radius:16px; padding:16px 24px }
+    .card-inset{ background:#0b1324; border:1px solid var(--glass); border-radius:16px; padding:20px 24px }
     .table-wrap{ overflow:auto; max-height:50vh }
     table{ color:#e5e7eb } th{ background:#0b1324 }
 
     /* ===== Login screen ===== */
-    .login-screen{
-      min-height:100dvh; display:grid; place-items:center; background:#0b1020; padding:24px;
-    }
-    .login-card{
-      width:100%; max-width:640px; padding:36px 28px; border-radius:18px;
-      background:rgba(15,23,42,.9); border:1px solid var(--glass);
-      box-shadow:0 20px 40px rgba(2,6,23,.6); color:#e5e7eb; text-align:center;
-    }
-    .title-stack{ margin-bottom:10px; text-align:center; }
-    .main-title{ font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(26px,4vw,38px);
-      -webkit-text-fill-color:#fff; -webkit-text-stroke:1.4px #000; color:#fff; }
-    .sub-title{ font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(18px,2.6vw,26px);
-      -webkit-text-fill-color:#fff; -webkit-text-stroke:1px #000; color:#fff; }
-    .btn-google{ all: unset; cursor:pointer; padding:1rem 1.25rem; border:2px solid #fff; border-radius:12px;
-      background:#000; color:#fff; font-weight:800; }
+    .login-screen{ min-height:100dvh; display:grid; place-items:center; background:#0b1020; padding:24px }
+    .login-card{ width:100%; max-width:640px; padding:36px 28px; border-radius:18px; background:rgba(15,23,42,.9); border:1px solid var(--glass); box-shadow:0 20px 40px rgba(2,6,23,.6); color:#e5e7eb; text-align:center }
+    .title-stack{ margin-bottom:10px; text-align:center }
+    .main-title{ font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(26px,4vw,38px); -webkit-text-fill-color:#fff; -webkit-text-stroke:1.4px #000; color:#fff }
+    .sub-title{ font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(18px,2.6vw,26px); -webkit-text-fill-color:#fff; -webkit-text-stroke:1px #000; color:#fff }
+    .btn-google{ all: unset; cursor:pointer; padding:1rem 1.25rem; border:2px solid #fff; border-radius:12px; background:#000; color:#fff; font-weight:800 }
 
     /* ===== Dashboard header (center titles + signout link) ===== */
-    .dash-header{ position:relative; text-align:center; margin:2rem auto 1rem; padding:0 1rem; }
-    .dash-title-stack{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; max-width:100%; word-wrap:break-word; }
-    .dash-main-title{
-      font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800;
-      font-size:clamp(26px,4vw,38px); text-transform:uppercase;
-      -webkit-text-fill-color:#000; -webkit-text-stroke:1.4px #fff; color:#000;
-    }
-    .dash-sub-title{
-      display:flex; flex-direction:column; align-items:center; gap:2px;
-      font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(18px,2.6vw,26px);
-      -webkit-text-fill-color:#000; -webkit-text-stroke:1px #fff; color:#000;
-    }
-    #companyInlineEn{ font-size:clamp(15px,2.2vw,22px); font-weight:700; letter-spacing:1px; text-transform:uppercase;
-      -webkit-text-fill-color:#000; -webkit-text-stroke:1px #fff; color:#000; }
-    .signout-link{
-      position:absolute; right:12px; top:12px; background:none; border:none; color:#fff;
-      font-size:0.85rem; text-decoration:underline; cursor:pointer; opacity:.85;
-    }
-    .signout-link:hover{ opacity:1; }
+    .dash-header{ position:relative; text-align:center; margin:2rem auto 1rem; padding:0 1rem }
+    .dash-title-stack{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; max-width:100%; word-wrap:break-word }
+    .dash-main-title{ font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(26px,4vw,38px); text-transform:uppercase; -webkit-text-fill-color:#000; -webkit-text-stroke:1.4px #fff; color:#000 }
+    .dash-sub-title{ display:flex; flex-direction:column; align-items:center; gap:2px; font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(18px,2.6vw,26px); -webkit-text-fill-color:#000; -webkit-text-stroke:1px #fff; color:#000 }
+    #companyInlineEn{ font-size:clamp(15px,2.2vw,22px); font-weight:700; letter-spacing:1px; text-transform:uppercase; -webkit-text-fill-color:#000; -webkit-text-stroke:1px #fff; color:#000 }
+    .signout-link{ position:absolute; right:12px; top:12px; background:none; border:none; color:#fff; font-size:0.85rem; text-decoration:underline; cursor:pointer; opacity:.85 }
+    .signout-link:hover{ opacity:1 }
+
+    /* ===== Form grid: จัดเรียงแนวเดียวกัน + กันชิดขอบ ===== */
+    .form-grid{ display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:16px; align-items:end; max-width:100% }
+    .form-grid > *{ min-width:0 }
+    .form-grid label > input, .form-grid label > select{ width:100%; box-sizing:border-box }
+    .right-input input{ text-align:right }
+    .card-inset > h3{ margin:0 0 10px 2px }
+
+    .span-2{ grid-column:span 2 } .span-3{ grid-column:span 3 } .span-4{ grid-column:span 4 } .span-6{ grid-column:span 6 } .span-12{ grid-column:1 / -1 }
+
+    @media (max-width:1100px){ .span-3{ grid-column:span 4 } .span-2{ grid-column:span 3 } }
+    @media (max-width:800px){ .form-grid{ grid-template-columns:repeat(6,1fr) } .span-4{ grid-column:span 6 } .span-3{ grid-column:span 6 } .span-2{ grid-column:span 3 } .span-6,.span-12{ grid-column:1 / -1 } }
+    @media (max-width:520px){ .form-grid{ grid-template-columns:repeat(4,1fr) } .span-2,.span-3,.span-4{ grid-column:1 / -1 } }
+
+    /* ===== Members (แชร์ให้นักบัญชี) ===== */
+    .members-chip{ display:inline-flex; align-items:center; gap:.35rem; padding:.25rem .5rem; border:1px dashed var(--glass); border-radius:999px; font-size:.8rem; opacity:.9 }
   </style>
 </head>
 <body>
@@ -93,12 +92,10 @@
       </div>
     </div>
 
-    <div style="margin-top:.5rem">
-      <span id="userBadge" class="badge hidden"></span>
-    </div>
+    <div style="margin-top:.5rem"><span id="userBadge" class="badge hidden"></span></div>
   </header>
 
-  <!-- Controls (ไม่มี 4 ปุ่มขวาแล้ว) -->
+  <!-- Controls + Company + Share -->
   <section class="app-surface">
     <div class="grid">
       <div>
@@ -114,6 +111,22 @@
       <div>
         <label>รอบบัญชี (เดือน)
           <input id="monthPicker" type="month" required>
+        </label>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:.5rem">
+      <div>
+        <label>เชิญนักบัญชีด้วยอีเมล (Gmail)
+          <input id="inviteEmail" type="email" placeholder="accountant@example.com">
+        </label>
+      </div>
+      <div style="display:flex;align-items:end">
+        <button id="btnInvite" class="secondary">เพิ่มนักบัญชี</button>
+      </div>
+      <div>
+        <label>สิทธิ์เข้าถึง (สมาชิก)
+          <div id="membersList" style="display:flex;gap:.5rem;flex-wrap:wrap"></div>
         </label>
       </div>
     </div>
@@ -133,32 +146,32 @@
     <article class="card-inset">
       <h3 style="margin-top:0">เพิ่มรายละเอียดรายการ</h3>
       <form id="detailForm">
-        <div class="grid">
-          <label>วันที่-เวลา
+        <div class="form-grid">
+          <label class="span-2">วันที่-เวลา
             <input id="detDate" type="datetime-local" required>
           </label>
-          <label>รหัส (Order/Doc ID)
+          <label class="span-3">รหัส (Order/Doc ID)
             <input id="detOrderCode" type="text" placeholder="เช่น ORD-1234">
           </label>
-          <label>เลขรหัส (Tracking/Ref)
+          <label class="span-3">เลขรหัส (Tracking/Ref)
             <input id="detRefNumber" type="text" placeholder="เช่น TRK-0001">
           </label>
-          <label>ราคา
+          <label class="span-2 right-input">ราคา
             <input id="detPrice" type="number" step="0.01" min="0" required>
           </label>
-          <label>ค่าส่ง
+          <label class="span-2 right-input">ค่าส่ง
             <input id="detShipping" type="number" step="0.01" min="0" value="0">
           </label>
-          <label>ชื่อสินค้า
+          <label class="span-4">ชื่อสินค้า
             <input id="detProduct" type="text" placeholder="ชื่อสินค้า/บริการ">
           </label>
-          <label>ประเภท
+          <label class="span-2">ประเภท
             <select id="detType" required>
               <option value="income">รายรับ</option>
               <option value="expense">รายจ่าย</option>
             </select>
           </label>
-          <label id="detExpenseWrap" class="hidden">ประเภทรายจ่ายย่อย
+          <label id="detExpenseWrap" class="span-3 hidden">ประเภทรายจ่ายย่อย
             <select id="detExpenseSubtype">
               <option value="ads">ค่าโฆษณา</option>
               <option value="shipping">ค่าขนส่ง</option>
@@ -166,12 +179,14 @@
               <option value="photo">ค่าจ้างถ่ายภาพ</option>
             </select>
           </label>
+          <label class="span-12">หมายเหตุ
+            <input id="detNote" type="text" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)">
+          </label>
+          <div class="span-12">
+            <div id="detMsg" class="pill" style="display:inline-block;margin-right:.5rem"></div>
+            <button id="detSave" type="submit" class="primary">บันทึก</button>
+          </div>
         </div>
-        <label>หมายเหตุ
-          <input id="detNote" type="text" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)">
-        </label>
-        <div id="detMsg" class="pill" style="display:inline-block"></div>
-        <button id="detSave" type="submit" class="primary" style="margin-top:.5rem">บันทึก</button>
       </form>
     </article>
   </section>
@@ -222,11 +237,7 @@
 
 <script>
 /* ================= Firebase ================= */
-const firebaseConfig={
-  apiKey:"AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo",
-  authDomain:"financial-dashboard-3d5dc.firebaseapp.com",
-  projectId:"financial-dashboard-3d5dc"
-};
+const firebaseConfig={ apiKey:"AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo", authDomain:"financial-dashboard-3d5dc.firebaseapp.com", projectId:"financial-dashboard-3d5dc" };
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.firestore();
 
@@ -239,6 +250,7 @@ const companyName=$('companyName'), companyNameEn=$('companyNameEn');
 const monthPicker=$('monthPicker');
 const kpiIncome=$('kpiIncome'), kpiExpense=$('kpiExpense'), kpiNet=$('kpiNet'), periodLabel=$('periodLabel');
 const searchBox=$('searchBox'), txBody=$('txBody'), countLabel=$('countLabel');
+const inviteEmail=$('inviteEmail'), btnInvite=$('btnInvite'), membersList=$('membersList');
 /* Detail form */
 const detailForm=$('detailForm'), detDate=$('detDate'), detOrderCode=$('detOrderCode'), detRefNumber=$('detRefNumber'),
       detPrice=$('detPrice'), detShipping=$('detShipping'), detProduct=$('detProduct'),
@@ -246,125 +258,154 @@ const detailForm=$('detailForm'), detDate=$('detDate'), detOrderCode=$('detOrder
       detNote=$('detNote'), detMsg=$('detMsg');
 
 /* ================= State/Utils ================= */
-let currentUser=null, unsubscribe=null, txCache=[], chart=null;
+let currentUser=null, unsubscribeTx=null, unsubscribeCompany=null, txCache=[], chart=null;
 const DEFAULT_COMPANY_TH='บริษัท รับทรัพย์โชคทวีจำกัด';
 const DEFAULT_COMPANY_EN='RUBSAP CHOKTAWEE CO., LTD.';
 const pad2=n=>String(n).padStart(2,'0');
 const fmtBaht=n=>'฿'+(Number(n||0)).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const toLocalDateTimeInput=d=>{const t=new Date(d);return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}T${pad2(t.getHours())}:${pad2(t.getMinutes())}`};
 const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);return{start:new Date(y,m-1,1,0,0,0,0),end:new Date(y,m,1,0,0,0,0)}};
-const sanitizeId=s=>(s||'default').trim().replace(/[\/#?\[\]]/g,'-').replace(/\s+/g,'-');
+const slug=s=>(s||'').toLowerCase().trim().replace(/[^a-z0-9ก-๙]+/gi,'-').replace(/^-+|-+$/g,'');
 
-/* Helpers: read values with fallback to legacy 'amount' */
-const num = v => Number(v||0);
-const priceOf = r => ('price' in r ? num(r.price) : num(r.amount));
-const shipOf  = r => ('shippingCost' in r ? num(r.shippingCost) : 0);
-const totalSigned = r => (r.type==='expense' ? -(priceOf(r)+shipOf(r)) : priceOf(r));
+let companyDocId = localStorage.getItem('companyDocId') || '';
 
-/* ===== Company Name binding ===== */
-function setCompanyName(th,en){
-  const thName=(th||'').trim()||DEFAULT_COMPANY_TH;
-  const enName=(en||'').trim()||DEFAULT_COMPANY_EN;
-  companyInline.textContent = thName;
-  companyInlineEn.textContent = enName.toUpperCase();
-  localStorage.setItem('companyNameTH', thName);
-  localStorage.setItem('companyNameEN', enName);
+/* ===== Company helpers ===== */
+function companyRef(){ if(!companyDocId) return null; return db.collection('companies').doc(companyDocId); }
+function txRef(){ const c=companyRef(); if(!c) return null; return c.collection('transactions'); }
+
+async function ensureCompanyDoc(thName, enName){
+  const th = (thName||companyName.value||DEFAULT_COMPANY_TH).trim();
+  const en = (enName||companyNameEn.value||DEFAULT_COMPANY_EN).trim();
+  if(!companyDocId){ companyDocId = slug(th)+"--"+(currentUser?.uid||'nouid'); localStorage.setItem('companyDocId', companyDocId); }
+  const ref = db.collection('companies').doc(companyDocId);
+  const snap = await ref.get();
+  if(!snap.exists){
+    await ref.set({
+      ownerUid: currentUser.uid,
+      ownerEmail: currentUser.email,
+      nameTH: th,
+      nameEN: en,
+      membersEmails: [currentUser.email], // เริ่มด้วยเจ้าของ
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+  }else{
+    await ref.update({ nameTH: th, nameEN: en, updatedAt: new Date() });
+  }
+  bindCompanyRealtime();
 }
-setCompanyName(localStorage.getItem('companyNameTH')||DEFAULT_COMPANY_TH,
-               localStorage.getItem('companyNameEN')||DEFAULT_COMPANY_EN);
 
-companyName.addEventListener('input',()=>setCompanyName(companyName.value,companyNameEn.value));
-companyNameEn.addEventListener('input',()=>setCompanyName(companyName.value,companyNameEn.value));
+function renderMembers(emails){
+  membersList.innerHTML = (emails||[]).map(e=>`<span class="members-chip">${e}</span>`).join('') || '<span class="muted">ยังไม่มีผู้ร่วมงาน</span>';
+}
 
-/* ================= Auth ================= */
+function setCompanyNameTexts(th,en){
+  companyInline.textContent = th||DEFAULT_COMPANY_TH;
+  companyInlineEn.textContent = (en||DEFAULT_COMPANY_EN).toUpperCase();
+  companyName.value = th||'';
+  companyNameEn.value = en||'';
+}
+
+function bindCompanyRealtime(){
+  if(!companyDocId) return;
+  if(unsubscribeCompany){ unsubscribeCompany(); unsubscribeCompany=null; }
+  unsubscribeCompany = db.collection('companies').doc(companyDocId).onSnapshot(doc=>{
+    const data = doc.data();
+    if(!data) return;
+    setCompanyNameTexts(data.nameTH, data.nameEN);
+    renderMembers(data.membersEmails);
+  });
+}
+
+/* ===== Auth ===== */
 btnSignIn.addEventListener('click', async ()=>{
   try{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-  catch(e){
-    if(e?.code==='auth/unauthorized-domain'){
-      alert('ยังไม่ได้เพิ่มโดเมนนี้ใน Firebase:\nFirebase Console → Authentication → Settings → Authorized domains → Add domain → ' + location.host);
-    }else{ alert('ล็อกอินไม่สำเร็จ: ' + (e?.message||e)); }
-  }
+  catch(e){ if(e?.code==='auth/unauthorized-domain'){ alert('ยังไม่ได้เพิ่มโดเมนนี้ใน Firebase:
+Firebase Console → Authentication → Settings → Authorized domains → Add domain → ' + location.host); } else { alert('ล็อกอินไม่สำเร็จ: ' + (e?.message||e)); } }
 });
-btnSignOut.addEventListener('click', async ()=>{ if(unsubscribe){unsubscribe();unsubscribe=null;} await auth.signOut(); });
+btnSignOut.addEventListener('click', async ()=>{ if(unsubscribeTx){unsubscribeTx();unsubscribeTx=null;} if(unsubscribeCompany){unsubscribeCompany();unsubscribeCompany=null;} await auth.signOut(); });
 
-auth.onAuthStateChanged(user=>{
+auth.onAuthStateChanged(async user=>{
   currentUser=user||null;
   if(user){
     userBadge.textContent=user.displayName||user.email;
     loginSection.classList.add('hidden'); dashboard.classList.remove('hidden');
-
-    companyName.value = localStorage.getItem('companyNameTH') || DEFAULT_COMPANY_TH;
-    companyNameEn.value = localStorage.getItem('companyNameEN') || DEFAULT_COMPANY_EN;
     monthPicker.value = localStorage.getItem('monthPicker') || new Date().toISOString().slice(0,7);
+    await ensureCompanyDoc(localStorage.getItem('companyNameTH')||DEFAULT_COMPANY_TH, localStorage.getItem('companyNameEN')||DEFAULT_COMPANY_EN);
     detDate.value = toLocalDateTimeInput(new Date());
-
-    applyAndListen(); // auto load
+    applyAndListen();
   }else{
     dashboard.classList.add('hidden'); loginSection.classList.remove('hidden');
   }
 });
 
-/* ================= Firestore path ================= */
-function getTxCollectionRef(){
-  const comp=sanitizeId(companyInline.textContent || DEFAULT_COMPANY_TH);
-  return db.collection('users').doc(currentUser.uid).collection('companies').doc(comp).collection('transactions');
-}
-
-/* ================= Load / Realtime ================= */
-monthPicker.addEventListener('change', ()=>{
-  localStorage.setItem('monthPicker', monthPicker.value);
-  applyAndListen();
+/* ===== Update company names ===== */
+companyName.addEventListener('input', async ()=>{
+  localStorage.setItem('companyNameTH', companyName.value);
+  await ensureCompanyDoc(companyName.value, companyNameEn.value);
+});
+companyNameEn.addEventListener('input', async ()=>{
+  localStorage.setItem('companyNameEN', companyNameEn.value);
+  await ensureCompanyDoc(companyName.value, companyNameEn.value);
 });
 
-function applyAndListen(){
-  if(!currentUser) return;
+/* ===== Invite accountant (by email) ===== */
+btnInvite.addEventListener('click', async ()=>{
+  if(!companyDocId) return alert('ยังไม่มีบริษัท');
+  const email = (inviteEmail.value||'').trim().toLowerCase();
+  if(!email){ alert('กรุณาใส่อีเมล'); return; }
+  if(!inviteEmail.checkValidity()){ alert('รูปแบบอีเมลไม่ถูกต้อง'); return; }
+  try{
+    await db.collection('companies').doc(companyDocId).update({
+      membersEmails: firebase.firestore.FieldValue.arrayUnion(email),
+      updatedAt: new Date()
+    });
+    inviteEmail.value='';
+    alert('เพิ่มนักบัญชีสำเร็จ');
+  }catch(e){ alert('เพิ่มไม่ได้: '+(e?.message||e)); }
+});
 
-  if(unsubscribe){unsubscribe();unsubscribe=null;}
+/* ================= Load / Realtime Transactions ================= */
+monthPicker.addEventListener('change', ()=>{ localStorage.setItem('monthPicker', monthPicker.value); applyAndListen(); });
+
+function applyAndListen(){
+  if(!currentUser || !companyDocId) return;
+  if(unsubscribeTx){unsubscribeTx();unsubscribeTx=null;}
   const {start,end}=monthRange(monthPicker.value);
   periodLabel.textContent=`ช่วง ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}`;
-
-  unsubscribe=getTxCollectionRef()
+  unsubscribeTx = txRef()
     .where('date','>=',start).where('date','<',end).orderBy('date','asc')
     .onSnapshot(snap=>{
       txCache=snap.docs.map(d=>({id:d.id,...d.data()}));
       renderTable(); renderKPIs(); renderChart();
-    }, err=>{
-      alert('โหลดข้อมูลผิดพลาด: '+err.message+
-        '\n\nถ้าเห็น code 403 ให้ตรวจ Firebase Security Rules/สิทธิ์ Firestore');
-    });
+    }, err=>{ alert('โหลดข้อมูลผิดพลาด: '+err.message+'
+
+ถ้าเห็น code 403 ให้ตรวจ Firebase Security Rules/สิทธิ์ Firestore'); });
 }
 
 /* ================= Detail form logic ================= */
-detType.addEventListener('change', ()=>{
-  if(detType.value==='expense'){ detExpenseWrap.classList.remove('hidden'); }
-  else{ detExpenseWrap.classList.add('hidden'); detExpenseSubtype.value='ads'; }
-});
+detType.addEventListener('change', ()=>{ if(detType.value==='expense'){ detExpenseWrap.classList.remove('hidden'); } else { detExpenseWrap.classList.add('hidden'); detExpenseSubtype.value='ads'; } });
 
-/* Submit save */
 detailForm.addEventListener('submit', async (e)=>{
-  e.preventDefault(); if(!currentUser) return;
+  e.preventDefault(); if(!currentUser || !companyDocId) return;
   const data={
-    uid:currentUser.uid,
-    companyTH:companyInline.textContent, companyEN:companyInlineEn.textContent,
+    companyId: companyDocId,
     date:new Date(detDate.value),
     orderCode: (detOrderCode.value||'').trim(),
     refNumber: (detRefNumber.value||'').trim(),
     productName:(detProduct.value||'').trim(),
-    price: num(detPrice.value),
-    shippingCost: num(detShipping.value),
-    type: detType.value, // 'income' | 'expense'
+    price: Number(detPrice.value||0),
+    shippingCost: Number(detShipping.value||0),
+    type: detType.value,
     expenseSubtype: detType.value==='expense' ? detExpenseSubtype.value : '',
     note:(detNote.value||'').trim(),
     createdAt:new Date(), createdBy: currentUser.email||currentUser.uid
   };
-  // basic validation
   if(!data.date || isNaN(data.price)){ detMsg.textContent='กรอกวันที่และราคาถูกต้องก่อน'; return; }
-
   detMsg.textContent='...กำลังบันทึก';
   try{
-    await getTxCollectionRef().add(data);
+    await txRef().add(data);
     detMsg.textContent='บันทึกแล้ว ✓';
-    // reset some fields
     detOrderCode.value=''; detRefNumber.value=''; detProduct.value=''; detNote.value='';
     detPrice.value=''; detShipping.value='0'; detType.value='income'; detExpenseWrap.classList.add('hidden');
     detDate.value = toLocalDateTimeInput(new Date());
@@ -376,16 +417,14 @@ detailForm.addEventListener('submit', async (e)=>{
 searchBox.addEventListener('input', renderTable);
 function renderTable(){
   const q=(searchBox.value||'').toLowerCase();
-  const rows=txCache.filter(r=>{
-    const hay=[r.productName,r.orderCode,r.refNumber,r.note,r.category].map(x=>(x||'').toLowerCase()).join(' ');
-    return !q || hay.includes(q);
-  });
+  const rows=txCache.filter(r=>{ const hay=[r.productName,r.orderCode,r.refNumber,r.note,r.type,r.expenseSubtype].map(x=>(x||'').toLowerCase()).join(' '); return !q || hay.includes(q); });
   countLabel.textContent=`${rows.length} รายการ`;
   txBody.innerHTML=rows.map(r=>{
     const d=new Date(r.date?.seconds ? r.date.seconds*1000 : r.date);
-    const price=priceOf(r), ship=shipOf(r);
-    const total = (r.type==='expense' ? -(price+ship) : price);
-    const subtype = (r.type==='expense' && r.expenseSubtype) ? r.expenseSubtype : '';
+    const price=Number(r.price||r.amount||0);
+    const ship=Number(r.shippingCost||0);
+    const total=(r.type==='expense'?-(price+ship):price);
+    const subtype=(r.type==='expense' && r.expenseSubtype)?r.expenseSubtype:'';
     return `<tr>
       <td>${d.toLocaleDateString('th-TH')}</td>
       <td>${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</td>
@@ -399,56 +438,40 @@ function renderTable(){
       <td class="right mono ${total>=0?'positive':'negative'}">${total>=0?'':'-'}${fmtBaht(Math.abs(total))}</td>
       <td>${r.note||''}</td>
       <td style="text-align:right"><button class="secondary outline" data-del="${r.id}">ลบ</button></td>
-    </tr>`;
-  }).join('');
-  [...document.querySelectorAll('[data-del]')].forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      if(!confirm('ต้องการลบรายการนี้?')) return;
-      try{ await getTxCollectionRef().doc(btn.dataset.del).delete(); }
-      catch(err){ alert('ลบไม่ได้: '+err.message); }
-    });
-  });
+    </tr>`; }).join('');
+  [...document.querySelectorAll('[data-del]')].forEach(btn=>{ btn.addEventListener('click', async ()=>{ if(!confirm('ต้องการลบรายการนี้?')) return; try{ await txRef().doc(btn.dataset.del).delete(); } catch(err){ alert('ลบไม่ได้: '+err.message); } }); });
 }
 
 /* ================= KPIs ================= */
 function renderKPIs(){
   let income=0, expense=0;
-  txCache.forEach(r=>{
-    if(r.type==='income'){ income += priceOf(r); }
-    else{ expense += (priceOf(r) + shipOf(r)); }
-  });
-  const net = income - expense;
-  kpiIncome.textContent=fmtBaht(income);
-  kpiExpense.textContent=fmtBaht(expense);
-  kpiNet.textContent=(net>=0?'':'-')+fmtBaht(Math.abs(net));
+  txCache.forEach(r=>{ const price=Number(r.price||r.amount||0); const ship=Number(r.shippingCost||0); if(r.type==='income'){ income += price; } else { expense += (price+ship); } });
+  const net=income-expense; kpiIncome.textContent=fmtBaht(income); kpiExpense.textContent=fmtBaht(expense); kpiNet.textContent=(net>=0?'':'-')+fmtBaht(Math.abs(net));
 }
 
 /* ================= Chart ================= */
 function renderChart(){
-  if(!monthPicker.value) return;
-  const [yy,mm]=monthPicker.value.split('-').map(Number);
-  const daysInMonth = new Date(yy, mm, 0).getDate();
-  const labels=[...Array(daysInMonth)].map((_,i)=>String(i+1));
-  const incomeDaily=Array(daysInMonth).fill(0), expenseDaily=Array(daysInMonth).fill(0);
-
-  txCache.forEach(r=>{
-    const d=new Date(r.date?.seconds ? r.date.seconds*1000 : r.date);
-    const i=d.getDate()-1; if(i<0||i>=daysInMonth) return;
-    if(r.type==='income') incomeDaily[i]+=priceOf(r);
-    else expenseDaily[i]+=(priceOf(r)+shipOf(r));
-  });
-
-  const ctx=document.getElementById('dailyChart');
-  if(window._dailyChart){ window._dailyChart.destroy(); }
-  window._dailyChart=new Chart(ctx,{
-    type:'bar',
-    data:{ labels, datasets:[
-      { label:'รายรับ', data:incomeDaily },
-      { label:'รายจ่าย', data:expenseDaily }
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top' }}, scales:{ y:{ beginAtZero:true } } }
-  });
+  if(!monthPicker.value) return; const [yy,mm]=monthPicker.value.split('-').map(Number); const daysInMonth=new Date(yy,mm,0).getDate();
+  const labels=[...Array(daysInMonth)].map((_,i)=>String(i+1)); const incomeDaily=Array(daysInMonth).fill(0), expenseDaily=Array(daysInMonth).fill(0);
+  txCache.forEach(r=>{ const d=new Date(r.date?.seconds ? r.date.seconds*1000 : r.date); const i=d.getDate()-1; if(i<0||i>=daysInMonth) return; const price=Number(r.price||r.amount||0); const ship=Number(r.shippingCost||0); if(r.type==='income') incomeDaily[i]+=price; else expenseDaily[i]+=(price+ship); });
+  const ctx=document.getElementById('dailyChart'); if(window._dailyChart){ window._dailyChart.destroy(); }
+  window._dailyChart=new Chart(ctx,{ type:'bar', data:{ labels, datasets:[ { label:'รายรับ', data:incomeDaily }, { label:'รายจ่าย', data:expenseDaily } ]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top' }}, scales:{ y:{ beginAtZero:true } } } });
 }
+
+/* ================= Firestore Security Rules (ตัวอย่าง – ใส่ใน Console ไม่ใช่ที่นี่) ================= */
+// service cloud.firestore {
+//   match /databases/{database}/documents {
+//     match /companies/{companyId} {
+//       allow read, update: if request.auth != null &&
+//         (request.auth.token.email in resource.data.membersEmails);
+//       allow create: if request.auth != null; // อนุญาตเจ้าของสร้างบริษัท
+//       match /transactions/{txId} {
+//         allow read, create, update, delete: if request.auth != null &&
+//           (request.auth.token.email in get(/databases/$(database)/documents/companies/$(companyId)).data.membersEmails);
+//       }
+//     }
+//   }
+// }
 </script>
 </body>
 </html>
