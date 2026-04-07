@@ -1,477 +1,233 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>รายรับรายจ่าย — Financial Dashboard</title>
-
-  <!-- Base UI -->
-  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2.0.6/css/pico.min.css">
-
-  <!-- Thai fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@600;700;800&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
-
-  <!-- Favicon (กัน 404) -->
-  <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23000'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' font-size='34' fill='%23fff'%3E%E0%B8%BF%3C/text%3E%3C/svg%3E">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Travel Flight Logbook Bot</title>
   <style>
-    :root{ --glass: rgba(255,255,255,.1); }
-    body{ background:#0b1020; color:#e5e7eb; font-family:"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
-    .container.app-shell{ max-width:1100px; padding-inline:14px; }
-
-    .hidden{ display:none!important }
-    .badge{ padding:.25rem .5rem;border-radius:999px;background:rgba(255,255,255,.12);font-size:.75rem }
-    .pill{ border:1px solid var(--pico-muted-border-color); border-radius:999px; padding:.4rem .75rem }
-    .mono{ font-variant-numeric:tabular-nums; font-family:ui-monospace,Menlo,Consolas,monospace }
-    .positive{ color:#16a34a;font-weight:600 } .negative{ color:#dc2626;font-weight:600 }
-    .app-surface{ background:#0f172a; border:1px solid var(--glass); border-radius:16px; padding:16px 24px }
-    .card-inset{ background:#0b1324; border:1px solid var(--glass); border-radius:16px; padding:20px 24px }
-    .table-wrap{ overflow:auto; max-height:50vh }
-    table{ color:#e5e7eb } th{ background:#0b1324 }
-
-    /* ===== Login screen ===== */
-    .login-screen{ min-height:100dvh; display:grid; place-items:center; background:#0b1020; padding:24px }
-    .login-card{ width:100%; max-width:640px; padding:36px 28px; border-radius:18px; background:rgba(15,23,42,.9); border:1px solid var(--glass); box-shadow:0 20px 40px rgba(2,6,23,.6); color:#e5e7eb; text-align:center }
-    .title-stack{ margin-bottom:10px; text-align:center }
-    .main-title{ font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(26px,4vw,38px); -webkit-text-fill-color:#fff; -webkit-text-stroke:1.4px #000; color:#fff }
-    .sub-title{ font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(18px,2.6vw,26px); -webkit-text-fill-color:#fff; -webkit-text-stroke:1px #000; color:#fff }
-    .btn-google{ all: unset; cursor:pointer; padding:1rem 1.25rem; border:2px solid #fff; border-radius:12px; background:#000; color:#fff; font-weight:800 }
-
-    /* ===== Dashboard header (center titles + signout link) ===== */
-    .dash-header{ position:relative; text-align:center; margin:2rem auto 1rem; padding:0 1rem }
-    .dash-title-stack{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; max-width:100%; word-wrap:break-word }
-    .dash-main-title{ font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(26px,4vw,38px); text-transform:uppercase; -webkit-text-fill-color:#000; -webkit-text-stroke:1.4px #fff; color:#000 }
-    .dash-sub-title{ display:flex; flex-direction:column; align-items:center; gap:2px; font-family:"Kanit","Noto Sans Thai",sans-serif; font-weight:800; font-size:clamp(18px,2.6vw,26px); -webkit-text-fill-color:#000; -webkit-text-stroke:1px #fff; color:#000 }
-    #companyInlineEn{ font-size:clamp(15px,2.2vw,22px); font-weight:700; letter-spacing:1px; text-transform:uppercase; -webkit-text-fill-color:#000; -webkit-text-stroke:1px #fff; color:#000 }
-    .signout-link{ position:absolute; right:12px; top:12px; background:none; border:none; color:#fff; font-size:0.85rem; text-decoration:underline; cursor:pointer; opacity:.85 }
-    .signout-link:hover{ opacity:1 }
-
-    /* ===== Form grid: จัดเรียงแนวเดียวกัน + กันชิดขอบ ===== */
-    .form-grid{ display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:16px; align-items:end; max-width:100% }
-    .form-grid > *{ min-width:0 }
-    .form-grid label > input, .form-grid label > select{ width:100%; box-sizing:border-box }
-    .right-input input{ text-align:right }
-    .card-inset > h3{ margin:0 0 10px 2px }
-
-    .span-2{ grid-column:span 2 } .span-3{ grid-column:span 3 } .span-4{ grid-column:span 4 } .span-6{ grid-column:span 6 } .span-12{ grid-column:1 / -1 }
-
-    @media (max-width:1100px){ .span-3{ grid-column:span 4 } .span-2{ grid-column:span 3 } }
-    @media (max-width:800px){ .form-grid{ grid-template-columns:repeat(6,1fr) } .span-4{ grid-column:span 6 } .span-3{ grid-column:span 6 } .span-2{ grid-column:span 3 } .span-6,.span-12{ grid-column:1 / -1 } }
-    @media (max-width:520px){ .form-grid{ grid-template-columns:repeat(4,1fr) } .span-2,.span-3,.span-4{ grid-column:1 / -1 } }
-
-    /* ===== Members (แชร์ให้นักบัญชี) ===== */
-    .members-chip{ display:inline-flex; align-items:center; gap:.35rem; padding:.25rem .5rem; border:1px dashed var(--glass); border-radius:999px; font-size:.8rem; opacity:.9 }
+    :root { color-scheme: dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 1rem; }
+    .card { background: #111827; border: 1px solid #334155; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+    h1,h2 { margin: .2rem 0 1rem; }
+    .grid { display: grid; gap: .75rem; grid-template-columns: repeat(12, 1fr); }
+    .span-3{grid-column: span 3;} .span-4{grid-column: span 4;} .span-6{grid-column: span 6;} .span-12{grid-column: 1 / -1;}
+    @media (max-width: 900px){ .span-3,.span-4,.span-6{grid-column: span 6;} }
+    @media (max-width: 640px){ .span-3,.span-4,.span-6{grid-column: 1 / -1;} }
+    label { display: grid; gap: .35rem; font-size: .92rem; }
+    input, button, textarea { border-radius: 8px; border: 1px solid #475569; background: #0b1220; color: #f8fafc; padding: .6rem .7rem; }
+    button { background: #2563eb; border: none; cursor: pointer; font-weight: 600; }
+    button.secondary { background: #334155; }
+    button.danger { background: #b91c1c; }
+    .kpi { display: grid; grid-template-columns: repeat(3,1fr); gap: .7rem; }
+    .pill { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: .8rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #334155; padding: .55rem .3rem; text-align: left; font-size: .92rem; }
+    .table-wrap { overflow: auto; }
+    .bot-output { background:#0b1220; border:1px solid #334155; border-radius:8px; min-height:70px; padding:.7rem; white-space:pre-wrap; }
+    .muted{color:#94a3b8; font-size:.88rem;}
   </style>
 </head>
 <body>
-
-<!-- ======================= LOGIN ======================= -->
-<section id="loginSection" class="login-screen">
-  <article class="login-card">
-    <div class="title-stack">
-      <div class="main-title">รายรับรายจ่าย</div>
-      <div id="companyTitle" class="sub-title">บริษัท รับทรัพย์โชคทวีจำกัด</div>
-    </div>
-    <button id="btnSignIn" class="btn-google">SIGN IN WITH GOOGLE</button>
-  </article>
-</section>
-
-<!-- ======================= DASHBOARD ======================= -->
-<main id="dashboard" class="container app-shell hidden">
-  <header class="dash-header">
-    <!-- ปุ่มออกจากระบบ: ข้อความเล็ก มุมขวาบน -->
-    <button id="btnSignOut" class="signout-link">ออกจากระบบ</button>
-
-    <!-- หัวเรื่อง 3 บรรทัด ตรงกลาง -->
-    <div class="dash-title-stack">
-      <div class="dash-main-title">FINANCIAL DASHBOARD</div>
-      <div class="dash-sub-title">
-        <div id="companyInline">บริษัท รับทรัพย์โชคทวีจำกัด</div>
-        <div id="companyInlineEn">RUBSAP CHOKTAWEE CO., LTD.</div>
-      </div>
+  <div class="wrap">
+    <div class="card">
+      <h1>✈️ Travel Flight Logbook Bot</h1>
+      <p class="muted">บันทึกเที่ยวบินส่วนตัว + ใช้บอทช่วยเพิ่ม/ค้นหา/สรุปข้อมูล (เก็บในเบราว์เซอร์ด้วย localStorage)</p>
     </div>
 
-    <div style="margin-top:.5rem"><span id="userBadge" class="badge hidden"></span></div>
-  </header>
-
-  <!-- Controls + Company + Share -->
-  <section class="app-surface">
-    <div class="grid">
-      <div>
-        <label>ชื่อบริษัท (TH)
-          <input id="companyName" type="text" placeholder="บริษัท ภาษาไทย" />
-        </label>
-      </div>
-      <div>
-        <label>Company Name (EN)
-          <input id="companyNameEn" type="text" placeholder="COMPANY NAME EN" />
-        </label>
-      </div>
-      <div>
-        <label>รอบบัญชี (เดือน)
-          <input id="monthPicker" type="month" required>
-        </label>
-      </div>
-    </div>
-
-    <div class="grid" style="margin-top:.5rem">
-      <div>
-        <label>เชิญนักบัญชีด้วยอีเมล (Gmail)
-          <input id="inviteEmail" type="email" placeholder="accountant@example.com">
-        </label>
-      </div>
-      <div style="display:flex;align-items:end">
-        <button id="btnInvite" class="secondary">เพิ่มนักบัญชี</button>
-      </div>
-      <div>
-        <label>สิทธิ์เข้าถึง (สมาชิก)
-          <div id="membersList" style="display:flex;gap:.5rem;flex-wrap:wrap"></div>
-        </label>
-      </div>
-    </div>
-  </section>
-
-  <!-- KPIs -->
-  <section>
-    <div class="grid">
-      <article class="card-inset"><hgroup><h3>รายรับเดือนนี้</h3><h2 class="positive mono" id="kpiIncome">฿0.00</h2></hgroup></article>
-      <article class="card-inset"><hgroup><h3>รายจ่ายเดือนนี้</h3><h2 class="negative mono" id="kpiExpense">฿0.00</h2></hgroup></article>
-      <article class="card-inset"><hgroup><h3>คงเหลือ (สุทธิ)</h3><h2 class="mono" id="kpiNet">฿0.00</h2></hgroup></article>
-    </div>
-  </section>
-
-  <!-- กล่องเพิ่มรายละเอียด (ใหม่) -->
-  <section>
-    <article class="card-inset">
-      <h3 style="margin-top:0">เพิ่มรายละเอียดรายการ</h3>
-      <form id="detailForm">
-        <div class="form-grid">
-          <label class="span-2">วันที่-เวลา
-            <input id="detDate" type="datetime-local" required>
-          </label>
-          <label class="span-3">รหัส (Order/Doc ID)
-            <input id="detOrderCode" type="text" placeholder="เช่น ORD-1234">
-          </label>
-          <label class="span-3">เลขรหัส (Tracking/Ref)
-            <input id="detRefNumber" type="text" placeholder="เช่น TRK-0001">
-          </label>
-          <label class="span-2 right-input">ราคา
-            <input id="detPrice" type="number" step="0.01" min="0" required>
-          </label>
-          <label class="span-2 right-input">ค่าส่ง
-            <input id="detShipping" type="number" step="0.01" min="0" value="0">
-          </label>
-          <label class="span-4">ชื่อสินค้า
-            <input id="detProduct" type="text" placeholder="ชื่อสินค้า/บริการ">
-          </label>
-          <label class="span-2">ประเภท
-            <select id="detType" required>
-              <option value="income">รายรับ</option>
-              <option value="expense">รายจ่าย</option>
-            </select>
-          </label>
-          <label id="detExpenseWrap" class="span-3 hidden">ประเภทรายจ่ายย่อย
-            <select id="detExpenseSubtype">
-              <option value="ads">ค่าโฆษณา</option>
-              <option value="shipping">ค่าขนส่ง</option>
-              <option value="laundry">ค่าซักอบ</option>
-              <option value="photo">ค่าจ้างถ่ายภาพ</option>
-            </select>
-          </label>
-          <label class="span-12">หมายเหตุ
-            <input id="detNote" type="text" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)">
-          </label>
-          <div class="span-12">
-            <div id="detMsg" class="pill" style="display:inline-block;margin-right:.5rem"></div>
-            <button id="detSave" type="submit" class="primary">บันทึก</button>
-          </div>
+    <div class="card">
+      <h2>เพิ่มเที่ยวบินด้วยฟอร์ม</h2>
+      <form id="flightForm" class="grid">
+        <label class="span-3">วันที่เดินทาง<input id="date" type="date" required /></label>
+        <label class="span-3">สายการบิน<input id="airline" type="text" placeholder="เช่น Thai Airways" required /></label>
+        <label class="span-3">เที่ยวบิน<input id="flightNo" type="text" placeholder="TG660" required /></label>
+        <label class="span-3">ระยะทาง (km)<input id="distance" type="number" min="0" step="1" placeholder="2870" required /></label>
+        <label class="span-3">จากสนามบิน<input id="from" type="text" placeholder="BKK" required /></label>
+        <label class="span-3">ถึงสนามบิน<input id="to" type="text" placeholder="HND" required /></label>
+        <label class="span-6">หมายเหตุ<input id="note" type="text" placeholder="Window seat, smooth flight" /></label>
+        <div class="span-12">
+          <button type="submit">เพิ่มเที่ยวบิน</button>
+          <button type="button" id="clearAll" class="danger">ล้างข้อมูลทั้งหมด</button>
         </div>
       </form>
-    </article>
-  </section>
+    </div>
 
-  <!-- Chart -->
-  <section>
-    <article class="card-inset">
-      <header><h3 style="margin:0">กราฟรายวัน: รายรับ vs รายจ่าย</h3><small id="periodLabel" class="muted"></small></header>
-      <canvas id="dailyChart" height="140"></canvas>
-    </article>
-  </section>
+    <div class="card">
+      <h2>สรุปการเดินทาง</h2>
+      <div class="kpi">
+        <div class="pill">จำนวนเที่ยวบิน<br><strong id="kpiFlights">0</strong></div>
+        <div class="pill">ระยะทางรวม (km)<br><strong id="kpiDistance">0</strong></div>
+        <div class="pill">เส้นทางล่าสุด<br><strong id="kpiLastRoute">-</strong></div>
+      </div>
+    </div>
 
-  <!-- Table -->
-  <section>
-    <article class="card-inset">
-      <header class="grid">
-        <div><h3 style="margin:0">รายการเดือนนี้</h3><small id="countLabel" class="muted">0 รายการ</small></div>
-        <div style="display:flex;justify-content:flex-end"><input id="searchBox" class="pill" placeholder="ค้นหา: สินค้า/รหัส/หมายเหตุ…"></div>
-      </header>
+    <div class="card">
+      <h2>🤖 Bot Command</h2>
+      <p class="muted">ตัวอย่างคำสั่ง: <code>เพิ่ม 2026-04-07 TG TG660 BKK HND 2870</code>, <code>ค้นหา BKK</code>, <code>สรุป</code>, <code>ช่วยเหลือ</code></p>
+      <div class="grid">
+        <input id="botInput" class="span-12" type="text" placeholder="พิมพ์คำสั่งที่นี่..." />
+        <div class="span-12">
+          <button id="runBot" type="button">ส่งคำสั่ง</button>
+        </div>
+      </div>
+      <div id="botOutput" class="bot-output" aria-live="polite">พร้อมทำงาน ✅</div>
+    </div>
+
+    <div class="card">
+      <h2>รายการเที่ยวบิน</h2>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr>
-              <th>วันที่</th><th>เวลา</th><th>ประเภท</th>
-              <th>ชื่อสินค้า</th><th class="right">ราคา</th><th class="right">ค่าส่ง</th>
-              <th>ประเภทย่อย</th>
-              <th>รหัส</th><th>เลขรหัส</th>
-              <th class="right">รวม</th>
-              <th>หมายเหตุ</th><th></th>
-            </tr>
+            <tr><th>วันที่</th><th>สายการบิน</th><th>Flight</th><th>จาก</th><th>ถึง</th><th>ระยะทาง</th><th>หมายเหตุ</th></tr>
           </thead>
-          <tbody id="txBody"></tbody>
+          <tbody id="flightRows"></tbody>
         </table>
       </div>
-    </article>
-  </section>
+    </div>
+  </div>
 
-  <footer style="margin:1.5rem 0">
-    <small>Project: <b>financial dashboard</b> • Firestore & Auth (Google)</small>
-  </footer>
-</main>
+  <script>
+    const STORAGE_KEY = 'travel_flight_logbook_v1';
+    const $ = (id) => document.getElementById(id);
 
-<!-- Firebase & Chart.js -->
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    const flightForm = $('flightForm');
+    const clearAllBtn = $('clearAll');
+    const flightRows = $('flightRows');
+    const botInput = $('botInput');
+    const runBot = $('runBot');
+    const botOutput = $('botOutput');
 
-<script>
-/* ================= Firebase ================= */
-const firebaseConfig={ apiKey:"AIzaSyC1--Ek-zl4wx5yOa7rvkNhldKWG7hIjjo", authDomain:"financial-dashboard-3d5dc.firebaseapp.com", projectId:"financial-dashboard-3d5dc" };
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(), db=firebase.firestore();
+    let flights = loadFlights();
 
-/* ================= Refs ================= */
-const $=id=>document.getElementById(id);
-const loginSection=$('loginSection'), dashboard=$('dashboard');
-const btnSignIn=$('btnSignIn'), btnSignOut=$('btnSignOut'), userBadge=$('userBadge');
-const companyInline=$('companyInline'), companyInlineEn=$('companyInlineEn');
-const companyName=$('companyName'), companyNameEn=$('companyNameEn');
-const monthPicker=$('monthPicker');
-const kpiIncome=$('kpiIncome'), kpiExpense=$('kpiExpense'), kpiNet=$('kpiNet'), periodLabel=$('periodLabel');
-const searchBox=$('searchBox'), txBody=$('txBody'), countLabel=$('countLabel');
-const inviteEmail=$('inviteEmail'), btnInvite=$('btnInvite'), membersList=$('membersList');
-/* Detail form */
-const detailForm=$('detailForm'), detDate=$('detDate'), detOrderCode=$('detOrderCode'), detRefNumber=$('detRefNumber'),
-      detPrice=$('detPrice'), detShipping=$('detShipping'), detProduct=$('detProduct'),
-      detType=$('detType'), detExpenseWrap=$('detExpenseWrap'), detExpenseSubtype=$('detExpenseSubtype'),
-      detNote=$('detNote'), detMsg=$('detMsg');
+    function loadFlights() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
+    }
 
-/* ================= State/Utils ================= */
-let currentUser=null, unsubscribeTx=null, unsubscribeCompany=null, txCache=[], chart=null;
-const DEFAULT_COMPANY_TH='บริษัท รับทรัพย์โชคทวีจำกัด';
-const DEFAULT_COMPANY_EN='RUBSAP CHOKTAWEE CO., LTD.';
-const pad2=n=>String(n).padStart(2,'0');
-const fmtBaht=n=>'฿'+(Number(n||0)).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
-const toLocalDateTimeInput=d=>{const t=new Date(d);return `${t.getFullYear()}-${pad2(t.getMonth()+1)}-${pad2(t.getDate())}T${pad2(t.getHours())}:${pad2(t.getMinutes())}`};
-const monthRange=yyyyMM=>{const [y,m]=yyyyMM.split('-').map(Number);return{start:new Date(y,m-1,1,0,0,0,0),end:new Date(y,m,1,0,0,0,0)}};
-const slug=s=>(s||'').toLowerCase().trim().replace(/[^a-z0-9ก-๙]+/gi,'-').replace(/^-+|-+$/g,'');
+    function saveFlights() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(flights));
+    }
 
-let companyDocId = localStorage.getItem('companyDocId') || '';
+    function render() {
+      const sorted = [...flights].sort((a, b) => a.date.localeCompare(b.date));
+      flightRows.innerHTML = sorted.map((f) => `
+        <tr>
+          <td>${f.date}</td>
+          <td>${f.airline}</td>
+          <td>${f.flightNo}</td>
+          <td>${f.from}</td>
+          <td>${f.to}</td>
+          <td>${Number(f.distance).toLocaleString()} km</td>
+          <td>${f.note || '-'}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="7" class="muted">ยังไม่มีข้อมูลเที่ยวบิน</td></tr>';
 
-/* ===== Company helpers ===== */
-function companyRef(){ if(!companyDocId) return null; return db.collection('companies').doc(companyDocId); }
-function txRef(){ const c=companyRef(); if(!c) return null; return c.collection('transactions'); }
+      $('kpiFlights').textContent = flights.length.toLocaleString();
+      const totalDistance = flights.reduce((sum, f) => sum + Number(f.distance || 0), 0);
+      $('kpiDistance').textContent = totalDistance.toLocaleString();
+      const latest = [...flights].sort((a, b) => b.date.localeCompare(a.date))[0];
+      $('kpiLastRoute').textContent = latest ? `${latest.from} → ${latest.to}` : '-';
+    }
 
-async function ensureCompanyDoc(thName, enName){
-  const th = (thName||companyName.value||DEFAULT_COMPANY_TH).trim();
-  const en = (enName||companyNameEn.value||DEFAULT_COMPANY_EN).trim();
-  if(!companyDocId){ companyDocId = slug(th)+"--"+(currentUser?.uid||'nouid'); localStorage.setItem('companyDocId', companyDocId); }
-  const ref = db.collection('companies').doc(companyDocId);
-  const snap = await ref.get();
-  if(!snap.exists){
-    await ref.set({
-      ownerUid: currentUser.uid,
-      ownerEmail: currentUser.email,
-      nameTH: th,
-      nameEN: en,
-      membersEmails: [currentUser.email], // เริ่มด้วยเจ้าของ
-      createdAt: new Date(),
-      updatedAt: new Date()
+    function addFlight(f) {
+      flights.push(f);
+      saveFlights();
+      render();
+    }
+
+    function parseBotCommand(text) {
+      const cmd = text.trim();
+      if (!cmd) return 'กรุณาพิมพ์คำสั่งก่อน';
+
+      if (cmd === 'ช่วยเหลือ' || cmd.toLowerCase() === 'help') {
+        return [
+          'คำสั่งที่รองรับ:',
+          '1) เพิ่ม YYYY-MM-DD AIRLINE FLIGHT FROM TO DISTANCE',
+          '   เช่น เพิ่ม 2026-04-07 TG TG660 BKK HND 2870',
+          '2) ค้นหา KEYWORD',
+          '3) สรุป',
+          '4) ล้าง'
+        ].join('\n');
+      }
+
+      if (cmd === 'สรุป') {
+        const total = flights.reduce((sum, f) => sum + Number(f.distance || 0), 0);
+        return `สรุปตอนนี้: ${flights.length} เที่ยวบิน, ระยะทางรวม ${total.toLocaleString()} km`;
+      }
+
+      if (cmd === 'ล้าง') {
+        flights = [];
+        saveFlights();
+        render();
+        return 'ล้างข้อมูลเที่ยวบินทั้งหมดแล้ว';
+      }
+
+      if (cmd.startsWith('ค้นหา ')) {
+        const keyword = cmd.replace('ค้นหา ', '').toLowerCase().trim();
+        const matched = flights.filter(f =>
+          [f.date, f.airline, f.flightNo, f.from, f.to, f.note].join(' ').toLowerCase().includes(keyword)
+        );
+        if (!matched.length) return `ไม่พบข้อมูลที่ตรงกับ "${keyword}"`;
+        return matched.map((f, i) => `${i + 1}. ${f.date} ${f.flightNo} ${f.from}→${f.to} ${Number(f.distance).toLocaleString()} km`).join('\n');
+      }
+
+      if (cmd.startsWith('เพิ่ม ')) {
+        const parts = cmd.split(/\s+/);
+        if (parts.length < 8) {
+          return 'รูปแบบไม่ถูกต้อง: เพิ่ม YYYY-MM-DD AIRLINE FLIGHT FROM TO DISTANCE';
+        }
+        const [, date, airline, flightNo, from, to, distanceRaw] = parts;
+        const distance = Number(distanceRaw);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(distance)) {
+          return 'ตรวจสอบรูปแบบวันที่หรือระยะทางอีกครั้ง';
+        }
+        addFlight({ date, airline, flightNo, from: from.toUpperCase(), to: to.toUpperCase(), distance, note: 'เพิ่มโดยบอท' });
+        return `เพิ่มเที่ยวบิน ${flightNo} (${from.toUpperCase()}→${to.toUpperCase()}) สำเร็จ`;
+      }
+
+      return 'ไม่รู้จักคำสั่งนี้ พิมพ์ "ช่วยเหลือ" เพื่อดูตัวอย่าง';
+    }
+
+    flightForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      addFlight({
+        date: $('date').value,
+        airline: $('airline').value.trim(),
+        flightNo: $('flightNo').value.trim().toUpperCase(),
+        distance: Number($('distance').value),
+        from: $('from').value.trim().toUpperCase(),
+        to: $('to').value.trim().toUpperCase(),
+        note: $('note').value.trim(),
+      });
+      flightForm.reset();
+      botOutput.textContent = 'เพิ่มเที่ยวบินจากฟอร์มเรียบร้อย ✈️';
     });
-  }else{
-    await ref.update({ nameTH: th, nameEN: en, updatedAt: new Date() });
-  }
-  bindCompanyRealtime();
-}
 
-function renderMembers(emails){
-  membersList.innerHTML = (emails||[]).map(e=>`<span class="members-chip">${e}</span>`).join('') || '<span class="muted">ยังไม่มีผู้ร่วมงาน</span>';
-}
-
-function setCompanyNameTexts(th,en){
-  companyInline.textContent = th||DEFAULT_COMPANY_TH;
-  companyInlineEn.textContent = (en||DEFAULT_COMPANY_EN).toUpperCase();
-  companyName.value = th||'';
-  companyNameEn.value = en||'';
-}
-
-function bindCompanyRealtime(){
-  if(!companyDocId) return;
-  if(unsubscribeCompany){ unsubscribeCompany(); unsubscribeCompany=null; }
-  unsubscribeCompany = db.collection('companies').doc(companyDocId).onSnapshot(doc=>{
-    const data = doc.data();
-    if(!data) return;
-    setCompanyNameTexts(data.nameTH, data.nameEN);
-    renderMembers(data.membersEmails);
-  });
-}
-
-/* ===== Auth ===== */
-btnSignIn.addEventListener('click', async ()=>{
-  try{ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-  catch(e){ if(e?.code==='auth/unauthorized-domain'){ alert('ยังไม่ได้เพิ่มโดเมนนี้ใน Firebase:
-Firebase Console → Authentication → Settings → Authorized domains → Add domain → ' + location.host); } else { alert('ล็อกอินไม่สำเร็จ: ' + (e?.message||e)); } }
-});
-btnSignOut.addEventListener('click', async ()=>{ if(unsubscribeTx){unsubscribeTx();unsubscribeTx=null;} if(unsubscribeCompany){unsubscribeCompany();unsubscribeCompany=null;} await auth.signOut(); });
-
-auth.onAuthStateChanged(async user=>{
-  currentUser=user||null;
-  if(user){
-    userBadge.textContent=user.displayName||user.email;
-    loginSection.classList.add('hidden'); dashboard.classList.remove('hidden');
-    monthPicker.value = localStorage.getItem('monthPicker') || new Date().toISOString().slice(0,7);
-    await ensureCompanyDoc(localStorage.getItem('companyNameTH')||DEFAULT_COMPANY_TH, localStorage.getItem('companyNameEN')||DEFAULT_COMPANY_EN);
-    detDate.value = toLocalDateTimeInput(new Date());
-    applyAndListen();
-  }else{
-    dashboard.classList.add('hidden'); loginSection.classList.remove('hidden');
-  }
-});
-
-/* ===== Update company names ===== */
-companyName.addEventListener('input', async ()=>{
-  localStorage.setItem('companyNameTH', companyName.value);
-  await ensureCompanyDoc(companyName.value, companyNameEn.value);
-});
-companyNameEn.addEventListener('input', async ()=>{
-  localStorage.setItem('companyNameEN', companyNameEn.value);
-  await ensureCompanyDoc(companyName.value, companyNameEn.value);
-});
-
-/* ===== Invite accountant (by email) ===== */
-btnInvite.addEventListener('click', async ()=>{
-  if(!companyDocId) return alert('ยังไม่มีบริษัท');
-  const email = (inviteEmail.value||'').trim().toLowerCase();
-  if(!email){ alert('กรุณาใส่อีเมล'); return; }
-  if(!inviteEmail.checkValidity()){ alert('รูปแบบอีเมลไม่ถูกต้อง'); return; }
-  try{
-    await db.collection('companies').doc(companyDocId).update({
-      membersEmails: firebase.firestore.FieldValue.arrayUnion(email),
-      updatedAt: new Date()
+    runBot.addEventListener('click', () => {
+      botOutput.textContent = parseBotCommand(botInput.value);
+      botInput.value = '';
     });
-    inviteEmail.value='';
-    alert('เพิ่มนักบัญชีสำเร็จ');
-  }catch(e){ alert('เพิ่มไม่ได้: '+(e?.message||e)); }
-});
 
-/* ================= Load / Realtime Transactions ================= */
-monthPicker.addEventListener('change', ()=>{ localStorage.setItem('monthPicker', monthPicker.value); applyAndListen(); });
+    botInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        runBot.click();
+      }
+    });
 
-function applyAndListen(){
-  if(!currentUser || !companyDocId) return;
-  if(unsubscribeTx){unsubscribeTx();unsubscribeTx=null;}
-  const {start,end}=monthRange(monthPicker.value);
-  periodLabel.textContent=`ช่วง ${start.toLocaleDateString('th-TH')} – ${new Date(end-1).toLocaleDateString('th-TH')}`;
-  unsubscribeTx = txRef()
-    .where('date','>=',start).where('date','<',end).orderBy('date','asc')
-    .onSnapshot(snap=>{
-      txCache=snap.docs.map(d=>({id:d.id,...d.data()}));
-      renderTable(); renderKPIs(); renderChart();
-    }, err=>{ alert('โหลดข้อมูลผิดพลาด: '+err.message+'
+    clearAllBtn.addEventListener('click', () => {
+      if (!confirm('ยืนยันการลบข้อมูลเที่ยวบินทั้งหมด?')) return;
+      flights = [];
+      saveFlights();
+      render();
+      botOutput.textContent = 'ล้างข้อมูลทั้งหมดแล้ว';
+    });
 
-ถ้าเห็น code 403 ให้ตรวจ Firebase Security Rules/สิทธิ์ Firestore'); });
-}
-
-/* ================= Detail form logic ================= */
-detType.addEventListener('change', ()=>{ if(detType.value==='expense'){ detExpenseWrap.classList.remove('hidden'); } else { detExpenseWrap.classList.add('hidden'); detExpenseSubtype.value='ads'; } });
-
-detailForm.addEventListener('submit', async (e)=>{
-  e.preventDefault(); if(!currentUser || !companyDocId) return;
-  const data={
-    companyId: companyDocId,
-    date:new Date(detDate.value),
-    orderCode: (detOrderCode.value||'').trim(),
-    refNumber: (detRefNumber.value||'').trim(),
-    productName:(detProduct.value||'').trim(),
-    price: Number(detPrice.value||0),
-    shippingCost: Number(detShipping.value||0),
-    type: detType.value,
-    expenseSubtype: detType.value==='expense' ? detExpenseSubtype.value : '',
-    note:(detNote.value||'').trim(),
-    createdAt:new Date(), createdBy: currentUser.email||currentUser.uid
-  };
-  if(!data.date || isNaN(data.price)){ detMsg.textContent='กรอกวันที่และราคาถูกต้องก่อน'; return; }
-  detMsg.textContent='...กำลังบันทึก';
-  try{
-    await txRef().add(data);
-    detMsg.textContent='บันทึกแล้ว ✓';
-    detOrderCode.value=''; detRefNumber.value=''; detProduct.value=''; detNote.value='';
-    detPrice.value=''; detShipping.value='0'; detType.value='income'; detExpenseWrap.classList.add('hidden');
-    detDate.value = toLocalDateTimeInput(new Date());
-    setTimeout(()=>detMsg.textContent='',1200);
-  }catch(err){ detMsg.textContent='ผิดพลาด: '+err.message; }
-});
-
-/* ================= Table ================= */
-searchBox.addEventListener('input', renderTable);
-function renderTable(){
-  const q=(searchBox.value||'').toLowerCase();
-  const rows=txCache.filter(r=>{ const hay=[r.productName,r.orderCode,r.refNumber,r.note,r.type,r.expenseSubtype].map(x=>(x||'').toLowerCase()).join(' '); return !q || hay.includes(q); });
-  countLabel.textContent=`${rows.length} รายการ`;
-  txBody.innerHTML=rows.map(r=>{
-    const d=new Date(r.date?.seconds ? r.date.seconds*1000 : r.date);
-    const price=Number(r.price||r.amount||0);
-    const ship=Number(r.shippingCost||0);
-    const total=(r.type==='expense'?-(price+ship):price);
-    const subtype=(r.type==='expense' && r.expenseSubtype)?r.expenseSubtype:'';
-    return `<tr>
-      <td>${d.toLocaleDateString('th-TH')}</td>
-      <td>${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</td>
-      <td>${r.type==='income'?'รายรับ':'รายจ่าย'}</td>
-      <td>${r.productName||''}</td>
-      <td class="right mono">${fmtBaht(price)}</td>
-      <td class="right mono">${ship?fmtBaht(ship):'-'}</td>
-      <td>${subtype||'-'}</td>
-      <td>${r.orderCode||''}</td>
-      <td>${r.refNumber||''}</td>
-      <td class="right mono ${total>=0?'positive':'negative'}">${total>=0?'':'-'}${fmtBaht(Math.abs(total))}</td>
-      <td>${r.note||''}</td>
-      <td style="text-align:right"><button class="secondary outline" data-del="${r.id}">ลบ</button></td>
-    </tr>`; }).join('');
-  [...document.querySelectorAll('[data-del]')].forEach(btn=>{ btn.addEventListener('click', async ()=>{ if(!confirm('ต้องการลบรายการนี้?')) return; try{ await txRef().doc(btn.dataset.del).delete(); } catch(err){ alert('ลบไม่ได้: '+err.message); } }); });
-}
-
-/* ================= KPIs ================= */
-function renderKPIs(){
-  let income=0, expense=0;
-  txCache.forEach(r=>{ const price=Number(r.price||r.amount||0); const ship=Number(r.shippingCost||0); if(r.type==='income'){ income += price; } else { expense += (price+ship); } });
-  const net=income-expense; kpiIncome.textContent=fmtBaht(income); kpiExpense.textContent=fmtBaht(expense); kpiNet.textContent=(net>=0?'':'-')+fmtBaht(Math.abs(net));
-}
-
-/* ================= Chart ================= */
-function renderChart(){
-  if(!monthPicker.value) return; const [yy,mm]=monthPicker.value.split('-').map(Number); const daysInMonth=new Date(yy,mm,0).getDate();
-  const labels=[...Array(daysInMonth)].map((_,i)=>String(i+1)); const incomeDaily=Array(daysInMonth).fill(0), expenseDaily=Array(daysInMonth).fill(0);
-  txCache.forEach(r=>{ const d=new Date(r.date?.seconds ? r.date.seconds*1000 : r.date); const i=d.getDate()-1; if(i<0||i>=daysInMonth) return; const price=Number(r.price||r.amount||0); const ship=Number(r.shippingCost||0); if(r.type==='income') incomeDaily[i]+=price; else expenseDaily[i]+=(price+ship); });
-  const ctx=document.getElementById('dailyChart'); if(window._dailyChart){ window._dailyChart.destroy(); }
-  window._dailyChart=new Chart(ctx,{ type:'bar', data:{ labels, datasets:[ { label:'รายรับ', data:incomeDaily }, { label:'รายจ่าย', data:expenseDaily } ]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top' }}, scales:{ y:{ beginAtZero:true } } } });
-}
-
-/* ================= Firestore Security Rules (ตัวอย่าง – ใส่ใน Console ไม่ใช่ที่นี่) ================= */
-// service cloud.firestore {
-//   match /databases/{database}/documents {
-//     match /companies/{companyId} {
-//       allow read, update: if request.auth != null &&
-//         (request.auth.token.email in resource.data.membersEmails);
-//       allow create: if request.auth != null; // อนุญาตเจ้าของสร้างบริษัท
-//       match /transactions/{txId} {
-//         allow read, create, update, delete: if request.auth != null &&
-//           (request.auth.token.email in get(/databases/$(database)/documents/companies/$(companyId)).data.membersEmails);
-//       }
-//     }
-//   }
-// }
-</script>
+    render();
+  </script>
 </body>
 </html>
